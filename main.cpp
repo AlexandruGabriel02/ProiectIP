@@ -73,6 +73,5 @@ int main() {
         updateWindow(&window);
     }
 
-    ///commit
     return 0;
 }
