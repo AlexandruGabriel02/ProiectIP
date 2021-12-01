@@ -73,5 +73,6 @@ int main() {
         updateWindow(&window);
     }
 
+    
     return 0;
 }
