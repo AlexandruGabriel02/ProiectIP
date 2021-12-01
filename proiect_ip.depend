@@ -1,8 +1,9 @@
 # depslib dependency file v1.0
-1638375348 source:d:\info\!proiectegraficacpp\proiectip\main.cpp
+1638386537 source:d:\info\!proiectegraficacpp\proiectip\main.cpp
 	<SFML/Graphics.hpp>
 	<string>
 	<iostream>
+	<fstream>
 	"diagrams.h"
 
 1525808418 d:\info\sfml-2.5.1\include\sfml\graphics.hpp
@@ -414,10 +415,10 @@
 	<SFML/Graphics/Drawable.hpp>
 	<SFML/Window/GlResource.hpp>
 
-1638376167 source:d:\info\!proiectegraficacpp\proiectip\diagrams.cpp
+1638385638 source:d:\info\!proiectegraficacpp\proiectip\diagrams.cpp
 	"diagrams.h"
 	<SFML/Graphics.hpp>
 
-1638376222 d:\info\!proiectegraficacpp\proiectip\diagrams.h
+1638382492 d:\info\!proiectegraficacpp\proiectip\diagrams.h
 	<SFML/Graphics.hpp>
 

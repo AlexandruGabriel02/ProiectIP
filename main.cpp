@@ -1,78 +1,147 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include "diagrams.h"
-#define WIDTH 1200
-#define HEIGHT 900
 
 using namespace std;
 using namespace sf;
 
-Font font;
+ifstream fin("input.txt");
 
-CircleShape createCircle(int x, int y, int r) {
-    CircleShape circle(r);
-    circle.setPosition(x-r, y-r);
-    circle.setFillColor(Color(0, 0, 0, 0));
-    circle.setOutlineThickness(2);
-    circle.setOutlineColor(Color(255, 255, 255));
-    return circle;
+#define WIDTH 1200
+#define HEIGHT 900
+#define SIZE 1000
+const int BLOCK_WIDTH = 200, BLOCK_HEIGHT = 60;
+enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, ERROR};
+
+struct node
+{
+    instructionType instruction;
+    string line;
+
+    float x, y;
+    float length;
+    float height;
+
+    vector <node*> next;
+
+};
+typedef node* tree;
+
+tree Tree;
+
+void clearTree()
+{
+
 }
 
-
-Text createText(int x, int y, string s) {
-    Text text;
-    text.setFont(font);
-    text.setPosition(x, y);
-    text.setString(s);
-    text.setCharacterSize(30);
-    text.setLetterSpacing(0.5);
-    return text;
+void initTree()
+{
+    clearTree();
+    Tree = new node;
+    Tree -> instruction = EMPTY_NODE;
 }
 
-void pollEvents(RenderWindow* window)
+string readLineFromFile()
+{
+    string str;
+    getline(fin, str);
+    return str;
+}
+
+instructionType getInstructionType(string str)
+{
+    ///returneaza primul cuvant
+    string word;
+
+    for (unsigned i = 0; i < str.size() && str[i] != ' '; i++)
+        word.push_back(str[i]);
+
+    if (word == "var")
+        return VAR;
+    else if (word == "set")
+        return SET;
+    else if (word == "if")
+        return IF;
+    else if (word == "while")
+        return WHILE;
+    else if (word == "pass")
+        return PASS;
+    else if (word == "read")
+        return READ;
+    else if (word == "print")
+        return PRINT;
+
+    return ERROR;
+}
+
+void buildTree(node* currentNode)
+{
+    if (currentNode -> instruction == EMPTY_NODE)
+    {
+        node* newNode = new node;
+        newNode -> line = readLineFromFile();
+        newNode -> instruction = getInstructionType(newNode -> line);
+
+        ///am legat nodurile
+        (currentNode -> next).push_back(newNode);
+        buildTree(newNode);
+    }
+    else if (currentNode -> instruction == IF)
+    {
+        node* trueNode = new node;
+        trueNode -> instruction = EMPTY_NODE;
+        (currentNode -> next).push_back(trueNode);
+        buildTree(trueNode);
+
+        node* falseNode = new node;
+        falseNode -> instruction = EMPTY_NODE;
+        (currentNode -> next).push_back(falseNode);
+        buildTree(falseNode);
+    }
+}
+
+void pollEvents(RenderWindow &window)
 {
     Event event;
-    while (window -> pollEvent(event)) {
+    while (window.pollEvent(event)) {
         if (event.type == Event::Closed)
-            window -> close();
+            window.close();
         if (event.type == Event::KeyPressed)
         {
             if (event.key.code == Keyboard::Escape)
-                window -> close();
+                window.close();
         }
     }
 }
 
-vector <VertexArray> shapes;
-void updateWindow(RenderWindow* window)
+void updateWindow(RenderWindow &window)
 {
-    window -> clear();
-    for(int i = 0; i < shapes.size(); i++)
-        window -> draw(shapes[i]);
-    window -> display();
+    RectangleShape rect(Vector2f(BLOCK_WIDTH, BLOCK_HEIGHT));
+    rect.setPosition(10, 10);
+    window.clear();
+    window.draw(rect);
+
+    window.display();
 }
 
 int main() {
-    RenderWindow window(VideoMode(WIDTH, HEIGHT), "NS Diagram");
+   // RenderWindow window(VideoMode(WIDTH, HEIGHT), "NS Diagram");
 
+    /*
     if(!font.loadFromFile("./font.ttf")) {
         cout << "Not found file";
         exit(0);
-    }
+    }*/
 
-    shapes.push_back(definitionsOrActionsCreate(20, 20, 100, 40));
-    shapes.push_back(decisionCreate(20, 60, 100, 80));
-    shapes.push_back(iterationWCreate(20, 100, 100, 140, 15));
-    shapes.push_back(iterationUCreate(20, 160, 100, 200, 15));
-    cout << shapes[shapes.size()-1].getBounds().top << ' ' << shapes[shapes.size()-1].getBounds().height << '\n';
-
+    /*
     while(window.isOpen()) {
 
-        pollEvents(&window);
-        updateWindow(&window);
-    }
+        pollEvents(window);
+        updateWindow(window);
+    }*/
+    fin.close();
 
-    
     return 0;
 }
