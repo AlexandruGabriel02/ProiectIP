@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1638386537 source:d:\info\!proiectegraficacpp\proiectip\main.cpp
+1638395380 source:d:\info\!proiectegraficacpp\proiectip\main.cpp
 	<SFML/Graphics.hpp>
 	<string>
 	<iostream>

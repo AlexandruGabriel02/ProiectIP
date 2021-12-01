@@ -1,3 +1,11 @@
 var int x
-
+set x 5
+if x>10
 var int y
+set x 1
+else
+pass
+endif
+while x
+set x x-1
+endwhile
