@@ -10,6 +10,25 @@ using namespace sf;
 
 Font font;
 
+CircleShape createCircle(int x, int y, int r) {
+    CircleShape circle(r);
+    circle.setPosition(x-r, y-r);
+    circle.setFillColor(Color(0, 0, 0, 0));
+    circle.setOutlineThickness(2);
+    circle.setOutlineColor(Color(255, 255, 255));
+    return circle;
+}
+
+
+Text createText(int x, int y, string s) {
+    Text text;
+    text.setFont(font);
+    text.setPosition(x, y);
+    text.setString(s);
+    text.setCharacterSize(30);
+    text.setLetterSpacing(0.5);
+    return text;
+}
 
 void pollEvents(RenderWindow* window)
 {
@@ -54,5 +73,6 @@ int main() {
         updateWindow(&window);
     }
 
+    ///commit
     return 0;
 }
