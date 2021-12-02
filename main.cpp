@@ -46,6 +46,7 @@ void clearTree(node* &currentNode)
     }
 }
 
+
 void initTree()
 {
     //clearTree();
