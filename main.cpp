@@ -92,13 +92,13 @@ void buildTree(node* &currentNode)
 {
     if (currentNode -> instruction == EMPTY_NODE)
     {
-        bool endOfFile = false;
-        while (!endOfFile)
+        bool exitWhile = false;
+        while (!exitWhile)
         {
             string lineStr = readLineFromFile();
 
-            if (lineStr == "") ///am ajuns la final
-                endOfFile = true;
+            if (fin.eof()) ///am ajuns la finalul fisierului
+                exitWhile = true;
             else
             {
                 node* newNode = new node;
@@ -109,7 +109,7 @@ void buildTree(node* &currentNode)
                 if (newNode -> instruction == END)
                 {
                     delete newNode; ///nu am avut nevoie de nod
-                    endOfFile = true; ///ies din while chiar daca nu termin de citit fisierul
+                    exitWhile = true; ///ies din while chiar daca nu termin de citit fisierul
                 }
                 else
                 {
@@ -175,10 +175,7 @@ void pollEvents(RenderWindow &window)
 
 void updateWindow(RenderWindow &window)
 {
-    RectangleShape rect(Vector2f(BLOCK_WIDTH, BLOCK_HEIGHT));
-    rect.setPosition(10, 10);
     window.clear();
-    window.draw(rect);
 
     window.display();
 }
@@ -194,7 +191,6 @@ void Debugger()
     cout << "stergere reusita\n";
 
     TreeDFS(Tree, 0);
-
 }
 
 int main() {

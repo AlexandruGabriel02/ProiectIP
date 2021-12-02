@@ -46,6 +46,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="diagrams.cpp" />
+		<Unit filename="diagrams.h" />
+		<Unit filename="input.txt" />
 		<Unit filename="main.cpp" />
 		<Unit filename="openal32.dll" />
 		<Unit filename="sfml-audio-2.dll" />

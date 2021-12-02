@@ -6,6 +6,3 @@ set x 1
 else
 pass
 endif
-while x
-set x x-1
-endwhile
