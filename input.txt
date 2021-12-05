@@ -1,8 +1,12 @@
+set x 5
 var int x
 set x 5
-if x>10
+if conditie
+while conditie
 var int y
-set x 1
+set y 2
+print y
+endwhile
 else
 pass
 endif
