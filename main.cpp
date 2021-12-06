@@ -14,7 +14,7 @@ ifstream fin("input.txt");
 #define SCREEN_HEIGHT 900
 #define SIZE 1000
 #define BLOCK_WIDTH 300.0
-#define BLOCK_HEIGHT 60.0;
+#define BLOCK_HEIGHT 60.0
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
@@ -81,10 +81,10 @@ void initTree()
     Tree = new node;
     Tree -> instruction = EMPTY_NODE;
 
-    Tree -> length = BLOCK_WIDTH;
-    Tree -> height = BLOCK_HEIGHT;
-    Tree -> x = 100;
-    Tree -> y = 100;
+    Tree -> length = BLOCK_WIDTH; ///latimea standard a unui bloc
+    Tree -> height = BLOCK_HEIGHT; ///inaltimea standard a unui bloc
+    Tree -> x = 300; ///coordonata x de inceput (stanga sus)
+    Tree -> y = 100; ///coordonata y de inceput stanga sus
 }
 
 string readLineFromFile()

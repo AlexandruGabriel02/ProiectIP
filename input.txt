@@ -10,4 +10,17 @@ pass
 endif
 else
 pass
+pass
 endif
+var int x
+var int y
+var int z
+if conditiona
+pass
+pass
+pass
+else
+pass
+pass
+endif
+pass
