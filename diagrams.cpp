@@ -3,7 +3,7 @@
 
 using namespace sf;
 
-VertexArray definitionsOrActionsCreate(int x, int y, int sx, int sy) {
+VertexArray definitionsOrActionsCreate(float x, float y, float sx, float sy) {
     VertexArray lines(LineStrip, 5);
     lines[0].position = Vector2f(x, y);
     lines[1].position = Vector2f(x, sy);
@@ -14,7 +14,7 @@ VertexArray definitionsOrActionsCreate(int x, int y, int sx, int sy) {
 }
 
 
-VertexArray decisionCreate(int x, int y, int sx, int sy) {
+VertexArray decisionCreate(float x, float y, float sx, float sy) {
     VertexArray lines(LineStrip, 8);
     lines[0].position = Vector2f(x, y);
     lines[1].position = Vector2f(x, sy);
@@ -29,7 +29,7 @@ VertexArray decisionCreate(int x, int y, int sx, int sy) {
 
 
 // same like definitionsOrActions
-VertexArray singleStepCreate(int x, int y, int sx, int sy) {
+VertexArray singleStepCreate(float x, float y, float sx, float sy) {
     VertexArray lines(LineStrip, 5);
     lines[0].position = Vector2f(x, y);
     lines[1].position = Vector2f(x, sy);
@@ -40,7 +40,7 @@ VertexArray singleStepCreate(int x, int y, int sx, int sy) {
 }
 
 
-VertexArray iterationWCreate(int x, int y, int sx, int sy, int l) {
+VertexArray iterationWCreate(float x, float y, float sx, float sy, float l) {
     VertexArray lines(LineStrip, 7);
     lines[0].position = Vector2f(x, y);
     lines[1].position = Vector2f(sx, y);
@@ -53,7 +53,7 @@ VertexArray iterationWCreate(int x, int y, int sx, int sy, int l) {
 }
 
 
-VertexArray iterationUCreate(int x, int y, int sx, int sy, int l) {
+VertexArray iterationUCreate(float x, float y, float sx, float sy, float l) {
     VertexArray lines(LineStrip, 7);
     lines[0].position = Vector2f(x, y);
     lines[1].position = Vector2f(x+l, y);

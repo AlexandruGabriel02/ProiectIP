@@ -3,14 +3,14 @@
 
 using namespace sf;
 
-VertexArray definitionsOrActionsCreate(int x, int y, int sx, int sy);
+VertexArray definitionsOrActionsCreate(float x, float y, float sx, float sy);
 
-VertexArray decisionCreate(int x, int y, int sx, int sy);
+VertexArray decisionCreate(float x, float y, float sx, float sy);
 
 // same like definitionsOrActions
-VertexArray singleStepCreate(int x, int y, int sx, int sy);
+VertexArray singleStepCreate(float x, float y, float sx, float sy);
 
-VertexArray iterationWCreate(int x, int y, int sx, int sy, int l);
+VertexArray iterationWCreate(float x, float y, float sx, float sy, float l);
 
-VertexArray iterationUCreate(int x, int y, int sx, int sy, int l);
+VertexArray iterationUCreate(float x, float y, float sx, float sy, float l);
 

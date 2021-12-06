@@ -13,7 +13,8 @@ ifstream fin("input.txt");
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 900
 #define SIZE 1000
-const int BLOCK_WIDTH = 200, BLOCK_HEIGHT = 60;
+#define BLOCK_WIDTH 300.0
+#define BLOCK_HEIGHT 60.0;
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
@@ -47,6 +48,8 @@ struct node
     float length;
     float height;
 
+    int verticalNodeCount; ///voi avea nevoie pentru calculul inaltimii
+
     vector <node*> next;
 
 };
@@ -77,6 +80,11 @@ void initTree()
     //clearTree();
     Tree = new node;
     Tree -> instruction = EMPTY_NODE;
+
+    Tree -> length = BLOCK_WIDTH;
+    Tree -> height = BLOCK_HEIGHT;
+    Tree -> x = 100;
+    Tree -> y = 100;
 }
 
 string readLineFromFile()
@@ -210,7 +218,7 @@ void TreeDFS(node* currentNode, int height)
     if (currentNode != NULL)
     {
         cout << "linie: " << currentNode -> lineOfCode << "\n";
-        cout << "inaltime: " << height << "\n";
+        cout << "verticalCount: " << currentNode -> verticalNodeCount << "\n";
         cout << currentNode -> instruction << " ";
         if (currentNode -> instruction != EMPTY_NODE)
             cout << currentNode -> line << "\n";
@@ -224,14 +232,13 @@ void TreeDFS(node* currentNode, int height)
 }
 
 ///verificarea erorilor
-
+///mai sunt de tratat cazurile cu expresii gresite si eventual cazuri in care pun gresit endif, else, endwhile, etc.
 void checkErrors_DFS(node* currentNode)
 {
     if (currentNode != NULL && validTree)
     {
         if (currentNode -> instruction == EMPTY_NODE)
             declaredLocal.clear();
-        ///mai trebuie adaugate cazuri de erori!
         else if (currentNode -> instruction == ERROR) ///tipul de instructiune nu este recunoscut
         {
             validTree = false;
@@ -399,6 +406,109 @@ void checkErrors_DFS(node* currentNode)
     }
 }
 
+///dp[empty_node] = noduri_simple + (1 + dp[while_empty]) + (1 + max(dp[if_T], dp[if_F]))
+///dp - tinut in verticalNodeCount
+void buildDP_DFS(node* &currentNode)
+{
+    if (currentNode != NULL)
+    {
+        if (currentNode -> instruction == EMPTY_NODE)
+            currentNode -> verticalNodeCount = 0;
+
+        for (node* nextNode : currentNode -> next)
+        {
+            buildDP_DFS(nextNode);
+            if (currentNode -> instruction == EMPTY_NODE)
+                currentNode -> verticalNodeCount += nextNode -> verticalNodeCount;
+        }
+
+        if (currentNode -> instruction == IF)
+            currentNode -> verticalNodeCount = 1 + max(currentNode -> next[0] -> verticalNodeCount, currentNode -> next[1] -> verticalNodeCount);
+        else if (currentNode -> instruction == WHILE)
+            currentNode -> verticalNodeCount = 1 + currentNode -> next[0] -> verticalNodeCount;
+        else if (currentNode -> instruction != EMPTY_NODE)
+            currentNode -> verticalNodeCount = 1;
+
+    }
+}
+
+void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
+{
+    if (currentNode != NULL)
+    {
+        ///creez dimensiunile blocului curent in functie de nodul tata
+        if (currentNode -> instruction != EMPTY_NODE)
+        {
+            currentNode -> length = emptyFather -> length;
+            currentNode -> height = emptyFather -> height;
+            currentNode -> x = emptyFather -> x;
+            currentNode -> y = emptyFather -> y;
+
+            emptyFather -> y += emptyFather -> height;
+        }
+
+        ///initializez urmatoarele noduri goale care vor deveni tati
+        if (currentNode -> instruction == IF)
+        {
+            currentNode -> next[0] -> length = emptyFather -> length / 2.; ///nodul gol de tip true
+            currentNode -> next[1] -> length = emptyFather -> length / 2.; ///nodul gol de tip false
+            currentNode -> next[0] -> x = emptyFather -> x;
+            currentNode -> next[1] -> x = emptyFather -> x + emptyFather -> length / 2.;
+
+            currentNode -> next[0] -> height = 1.f *
+            (currentNode -> verticalNodeCount - 1) * emptyFather -> height / currentNode -> next[0] -> verticalNodeCount;
+            currentNode -> next[1] -> height = 1.f *
+            (currentNode -> verticalNodeCount - 1) * emptyFather -> height / currentNode -> next[1] -> verticalNodeCount;
+            currentNode -> next[0] -> y = currentNode -> next[1] -> y = emptyFather -> y;
+
+            emptyFather -> y += (currentNode -> verticalNodeCount - 1) * emptyFather -> height;
+
+        }
+        else if (currentNode -> instruction == WHILE)
+        {
+            ///de implementat
+        }
+
+        for (node* nextNode : currentNode -> next)
+        {
+            if (currentNode -> instruction == EMPTY_NODE)
+                buildDiagram_DFS(nextNode, currentNode);
+            else
+                buildDiagram_DFS(nextNode, emptyFather);
+        }
+    }
+}
+
+void printDiagram_DFS(node* currentNode, RenderWindow &window)
+{
+    if (currentNode != NULL)
+    {
+        if (currentNode -> instruction == IF)
+        {
+            float xUp = currentNode -> x, yUp = currentNode -> y;
+            float xDown = xUp + currentNode -> length;
+            float yDown = yUp + currentNode -> height;
+
+            window.draw(decisionCreate(xUp, yUp, xDown, yDown));
+        }
+        else if (currentNode -> instruction == WHILE)
+        {
+            ///de implementat
+        }
+        else if (currentNode -> instruction != EMPTY_NODE)
+        {
+            float xUp = currentNode -> x, yUp = currentNode -> y;
+            float xDown = xUp + currentNode -> length;
+            float yDown = yUp + currentNode -> height;
+
+            window.draw(singleStepCreate(xUp, yUp, xDown, yDown));
+        }
+
+        for (node* nextNode : currentNode -> next)
+            printDiagram_DFS(nextNode, window);
+    }
+}
+
 void pollEvents(RenderWindow &window)
 {
     Event event;
@@ -417,6 +527,8 @@ void updateWindow(RenderWindow &window)
 {
     window.clear();
 
+    printDiagram_DFS(Tree, window);
+
     window.display();
 }
 
@@ -428,12 +540,14 @@ void Debugger()
 
     if (validTree)
     {
-        TreeDFS(Tree, 0); ///afisez arborele
-        clearTree(Tree);
+        buildDP_DFS(Tree);
+        buildDiagram_DFS(Tree, Tree);
+      //  TreeDFS(Tree, 0); ///afisez arborele
+      //  clearTree(Tree);
 
-        cout << "stergere reusita\n";
+      //  cout << "stergere reusita\n";
 
-        TreeDFS(Tree, 0);
+      //  TreeDFS(Tree, 0);
     }
     else
     {
@@ -443,7 +557,7 @@ void Debugger()
 }
 
 int main() {
-   // RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
+    RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
 
     /*
     if(!font.loadFromFile("./font.ttf")) {
@@ -453,12 +567,11 @@ int main() {
 
     Debugger();
 
-    /*
     while(window.isOpen()) {
 
         pollEvents(window);
         updateWindow(window);
-    }*/
+    }
     fin.close();
 
     return 0;

@@ -1,12 +1,13 @@
-set x 5
-var int x
-set x 5
-if conditie
-while conditie
-var int y
-set y 2
-print y
-endwhile
+if a
+if a
+if a
+pass
+else
+pass
+endif
+else
+pass
+endif
 else
 pass
 endif
