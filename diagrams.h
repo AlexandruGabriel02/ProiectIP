@@ -10,7 +10,7 @@ VertexArray decisionCreate(float x, float y, float sx, float sy);
 // same like definitionsOrActions
 VertexArray singleStepCreate(float x, float y, float sx, float sy);
 
-VertexArray iterationWCreate(float x, float y, float sx, float sy, float l);
+VertexArray iterationWCreate(float x, float y, float sx, float sy, float l, float h);
 
 VertexArray iterationUCreate(float x, float y, float sx, float sy, float l);
 

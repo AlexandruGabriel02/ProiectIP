@@ -40,12 +40,12 @@ VertexArray singleStepCreate(float x, float y, float sx, float sy) {
 }
 
 
-VertexArray iterationWCreate(float x, float y, float sx, float sy, float l) {
+VertexArray iterationWCreate(float x, float y, float sx, float sy, float l, float h) {
     VertexArray lines(LineStrip, 7);
     lines[0].position = Vector2f(x, y);
     lines[1].position = Vector2f(sx, y);
-    lines[2].position = Vector2f(sx, y+l);
-    lines[3].position = Vector2f(x+l, y+l);
+    lines[2].position = Vector2f(sx, y+h);
+    lines[3].position = Vector2f(x+l, y+h);
     lines[4].position = Vector2f(x+l, sy);
     lines[5].position = Vector2f(x, sy);
     lines[6].position = Vector2f(x, y);

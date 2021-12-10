@@ -1,26 +1,21 @@
+while a
 if a
-if a
-if a
 pass
-else
+while a
 pass
-endif
-else
-pass
-endif
-else
-pass
-pass
-endif
-var int x
-var int y
-var int z
-if conditiona
-pass
-pass
-pass
-else
 pass
 pass
 endif
 pass
+else
+pass
+pass
+pass
+while a
+pass
+pass
+endif
+pass
+pass
+endif
+endwhile

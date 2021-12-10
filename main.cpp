@@ -440,11 +440,16 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
         if (currentNode -> instruction != EMPTY_NODE)
         {
             currentNode -> length = emptyFather -> length;
-            currentNode -> height = emptyFather -> height;
             currentNode -> x = emptyFather -> x;
             currentNode -> y = emptyFather -> y;
 
             emptyFather -> y += emptyFather -> height;
+
+            if (currentNode -> instruction != WHILE) ///bloc de tip dreptunghi
+                currentNode -> height = emptyFather -> height;
+            else ///bloc de tip bucla, trebuie sa acopere toate blocurile din interior
+                currentNode -> height = currentNode -> verticalNodeCount * emptyFather -> height;
+
         }
 
         ///initializez urmatoarele noduri goale care vor deveni tati
@@ -466,7 +471,14 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
         }
         else if (currentNode -> instruction == WHILE)
         {
-            ///de implementat
+            float offset = emptyFather -> length / 5.; ///lungimea pentru bara din stanga
+            currentNode -> next[0] -> length = emptyFather -> length - offset;
+            currentNode -> next[0] -> x = emptyFather -> x + offset;
+
+            currentNode -> next[0] -> height = emptyFather -> height;
+            currentNode -> next[0] -> y = emptyFather -> y;
+
+            emptyFather -> y += (currentNode -> verticalNodeCount - 1) * emptyFather -> height;
         }
 
         for (node* nextNode : currentNode -> next)
@@ -493,7 +505,13 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
         }
         else if (currentNode -> instruction == WHILE)
         {
-            ///de implementat
+            float xUp = currentNode -> x, yUp = currentNode -> y;
+            float xDown = xUp + currentNode -> length;
+            float yDown = yUp + currentNode -> height;
+            float offset = currentNode -> length / 5.; ///lungimea pentru bara din stanga
+            float rectangleHeight = currentNode -> height / currentNode -> verticalNodeCount; ///inaltimea blocului fara bara din stanga
+
+            window.draw(iterationWCreate(xUp, yUp, xDown, yDown, offset, rectangleHeight));
         }
         else if (currentNode -> instruction != EMPTY_NODE)
         {
