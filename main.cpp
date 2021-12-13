@@ -504,14 +504,24 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             Point bottomRight;
             bottomRight.x = topLeft.x + currentNode -> length;
             bottomRight.y = topLeft.y + currentNode -> height;
+
+            Box box;
+            box.x = topLeft.x + (bottomRight.x-topLeft.x)/4;
+            box.y = topLeft.y;
+            box.length = (bottomRight.x-topLeft.x)/2;
+            box.height = (bottomRight.y-topLeft.y)/4;
+
             string str;
+            for(int i = 1; i < (int)currentNode -> words.size(); i++) {
+                if(i > 1)
+                    str += ' ';
+                str += currentNode -> words[i];
+            }
 
             // desenare text pentru if
-            for(int i = 1; i < (int)currentNode -> words.size(); i++)
-                str += currentNode -> words[i];
-            //window.draw(createText(xUp+(xDown-xUp)/2, yUp, (char*)str.c_str(), font));
+            window.draw(createText(box, str, font));
             
-            // desenare blocul pentru if
+            // desenarea blocului pentru if
             window.draw(decisionCreate(topLeft, bottomRight));
         }
         else if (currentNode -> instruction == WHILE)
@@ -525,6 +535,23 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             float offset = currentNode -> length / 5.; ///lungimea pentru bara din stanga
             float rectangleHeight = currentNode -> height / currentNode -> verticalNodeCount; ///inaltimea blocului fara bara din stanga
 
+            Box box;
+            box.x = topLeft.x;
+            box.y = topLeft.y;
+            box.length = bottomRight.x-topLeft.x;
+            box.height = rectangleHeight/2;
+
+            string str;
+            for(int i = 1; i < (int)currentNode -> words.size(); i++) {
+                if(i > 1)
+                    str += ' ';
+                str += currentNode -> words[i];
+            }
+
+            // desenare text pentru while
+            window.draw(createText(box, str, font));
+
+            // desenarea blocului pentru while
             window.draw(iterationWCreate(topLeft, bottomRight, offset, rectangleHeight));
         }
         else if (currentNode -> instruction != EMPTY_NODE)
@@ -536,6 +563,25 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             bottomRight.x = topLeft.x + currentNode -> length;
             bottomRight.y = topLeft.y + currentNode -> height;
 
+            Box box;
+            box.x = topLeft.x;
+            box.y = topLeft.y;
+            box.length = bottomRight.x-topLeft.x;
+            box.height = (bottomRight.y-topLeft.y)/2;
+
+            string str;
+            for(int i = 1; i < (int)currentNode -> words.size(); i++) {
+                if(i > 1)
+                    str += ' ';
+                str += currentNode -> words[i];
+            }
+            if(currentNode -> words.size() == 1)
+                str = " ";
+
+            // desenare text pentru singleStep
+            window.draw(createText(box, str, font));
+
+            // desenarea blocului pentru singleStep
             window.draw(singleStepCreate(topLeft, bottomRight));
         }
 

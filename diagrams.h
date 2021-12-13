@@ -9,7 +9,11 @@ struct Point {
     float x, y;
 };
 
-Text createText(Point topLeft, char s[], Font font);
+struct Box {
+    float x, y, length, height;
+};
+
+Text createText(Box box, char s[], Font font);
 
 VertexArray definitionsOrActionsCreate(Point topLeft, Point bottomRight);
 

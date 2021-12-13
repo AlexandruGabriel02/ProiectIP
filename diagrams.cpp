@@ -1,15 +1,24 @@
 #include "diagrams.h"
 #include <SFML/Graphics.hpp>
+#include <iostream>
+#include <string>
 
+using namespace std;
 using namespace sf;
 
-Text createText(Point topLeft, char s[], Font font) {
+Text createText(Box box, string str, Font font) {
     Text text;
     text.setFont(font);
-    text.setString(s);
-    text.setCharacterSize(5);
+    text.setString(str);
+    float i = 1;
+    text.setCharacterSize(i);
+    while(text.getLocalBounds().width <= box.length && text.getLocalBounds().height <= box.height) {
+        i += 1;
+        text.setCharacterSize(i);
+    }
+    text.setCharacterSize(i-1);
     text.setLetterSpacing(0.5);
-    text.setPosition(topLeft.x-text.getLocalBounds().width/2, topLeft.y);
+    text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2-5, box.y+(box.height-text.getLocalBounds().height)/2);
     return text;
 }
 
