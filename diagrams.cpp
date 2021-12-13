@@ -3,65 +3,75 @@
 
 using namespace sf;
 
-VertexArray definitionsOrActionsCreate(float x, float y, float sx, float sy) {
+Text createText(Point topLeft, char s[], Font font) {
+    Text text;
+    text.setFont(font);
+    text.setString(s);
+    text.setCharacterSize(5);
+    text.setLetterSpacing(0.5);
+    text.setPosition(topLeft.x-text.getLocalBounds().width/2, topLeft.y);
+    return text;
+}
+
+VertexArray definitionsOrActionsCreate(Point topLeft, Point bottomRight) {
     VertexArray lines(LineStrip, 5);
-    lines[0].position = Vector2f(x, y);
-    lines[1].position = Vector2f(x, sy);
-    lines[2].position = Vector2f(sx, sy);
-    lines[3].position = Vector2f(sx, y);
-    lines[4].position = Vector2f(x, y);
+    lines[0].position = Vector2f(topLeft.x, topLeft.y);
+    lines[1].position = Vector2f(topLeft.x, bottomRight.y);
+    lines[2].position = Vector2f(bottomRight.x, bottomRight.y);
+    lines[3].position = Vector2f(bottomRight.x, topLeft.y);
+    lines[4].position = Vector2f(topLeft.x, topLeft.y);
     return lines;
 }
 
 
-VertexArray decisionCreate(float x, float y, float sx, float sy) {
+VertexArray decisionCreate(Point topLeft, Point bottomRight) {
     VertexArray lines(LineStrip, 8);
-    lines[0].position = Vector2f(x, y);
-    lines[1].position = Vector2f(x, sy);
-    lines[2].position = Vector2f(x+(sx-x)/2, sy);
-    lines[3].position = Vector2f(x, y);
-    lines[4].position = Vector2f(sx, y);
-    lines[5].position = Vector2f(x+(sx-x)/2, sy);
-    lines[6].position = Vector2f(sx, sy);
-    lines[7].position = Vector2f(sx, y);
+    lines[0].position = Vector2f(topLeft.x, topLeft.y);
+    lines[1].position = Vector2f(topLeft.x, bottomRight.y);
+    lines[2].position = Vector2f(topLeft.x+(bottomRight.x-topLeft.x)/2, bottomRight.y);
+    lines[3].position = Vector2f(topLeft.x, topLeft.y);
+    lines[4].position = Vector2f(bottomRight.x, topLeft.y);
+    lines[5].position = Vector2f(topLeft.x+(bottomRight.x-topLeft.x)/2, bottomRight.y);
+    lines[6].position = Vector2f(bottomRight.x, bottomRight.y);
+    lines[7].position = Vector2f(bottomRight.x, topLeft.y);
     return lines;
 }
 
 
 // same like definitionsOrActions
-VertexArray singleStepCreate(float x, float y, float sx, float sy) {
+VertexArray singleStepCreate(Point topLeft, Point bottomRight) {
     VertexArray lines(LineStrip, 5);
-    lines[0].position = Vector2f(x, y);
-    lines[1].position = Vector2f(x, sy);
-    lines[2].position = Vector2f(sx, sy);
-    lines[3].position = Vector2f(sx, y);
-    lines[4].position = Vector2f(x, y);
+    lines[0].position = Vector2f(topLeft.x, topLeft.y);
+    lines[1].position = Vector2f(topLeft.x, bottomRight.y);
+    lines[2].position = Vector2f(bottomRight.x, bottomRight.y);
+    lines[3].position = Vector2f(bottomRight.x, topLeft.y);
+    lines[4].position = Vector2f(topLeft.x, topLeft.y);
     return lines;
 }
 
 
-VertexArray iterationWCreate(float x, float y, float sx, float sy, float l, float h) {
+VertexArray iterationWCreate(Point topLeft, Point bottomRight, float l, float h) {
     VertexArray lines(LineStrip, 7);
-    lines[0].position = Vector2f(x, y);
-    lines[1].position = Vector2f(sx, y);
-    lines[2].position = Vector2f(sx, y+h);
-    lines[3].position = Vector2f(x+l, y+h);
-    lines[4].position = Vector2f(x+l, sy);
-    lines[5].position = Vector2f(x, sy);
-    lines[6].position = Vector2f(x, y);
+    lines[0].position = Vector2f(topLeft.x, topLeft.y);
+    lines[1].position = Vector2f(bottomRight.x, topLeft.y);
+    lines[2].position = Vector2f(bottomRight.x, topLeft.y+h);
+    lines[3].position = Vector2f(topLeft.x+l, topLeft.y+h);
+    lines[4].position = Vector2f(topLeft.x+l, bottomRight.y);
+    lines[5].position = Vector2f(topLeft.x, bottomRight.y);
+    lines[6].position = Vector2f(topLeft.x, topLeft.y);
     return lines;
 }
 
 
-VertexArray iterationUCreate(float x, float y, float sx, float sy, float l) {
+VertexArray iterationUCreate(Point topLeft, Point bottomRight, float l) {
     VertexArray lines(LineStrip, 7);
-    lines[0].position = Vector2f(x, y);
-    lines[1].position = Vector2f(x+l, y);
-    lines[2].position = Vector2f(x+l, sy-l);
-    lines[3].position = Vector2f(sx, sy-l);
-    lines[4].position = Vector2f(sx, sy);
-    lines[5].position = Vector2f(x, sy);
-    lines[6].position = Vector2f(x, y);
+    lines[0].position = Vector2f(topLeft.x, topLeft.y);
+    lines[1].position = Vector2f(topLeft.x+l, topLeft.y);
+    lines[2].position = Vector2f(topLeft.x+l, bottomRight.y-l);
+    lines[3].position = Vector2f(bottomRight.x, bottomRight.y-l);
+    lines[4].position = Vector2f(bottomRight.x, bottomRight.y);
+    lines[5].position = Vector2f(topLeft.x, bottomRight.y);
+    lines[6].position = Vector2f(topLeft.x, topLeft.y);
     return lines;
 }
 
@@ -75,15 +85,6 @@ CircleShape createCircle(int x, int y, int r) {
     circle.setOutlineThickness(2);
     circle.setOutlineColor(Color(255, 255, 255));
     return circle;
-}
-
-
-Text createText(int x, int y, string s) {
-    Text text;
-    text.setFont(font);
-    text.setPosition(x, y);
-    text.setString(s);
-    text.setCharacterSize(30);
-    text.setLetterSpacing(0.5);
-    return text;
 }*/
+
+

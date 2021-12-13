@@ -1,9 +1,9 @@
 #include <SFML/Graphics.hpp>
-#include <string>
 #include <iostream>
 #include <fstream>
 #include <set>
-#include "diagrams.h"
+//#include "diagrams.h"
+#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -491,35 +491,52 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
     }
 }
 
+// desenarea diagramei
 void printDiagram_DFS(node* currentNode, RenderWindow &window)
 {
     if (currentNode != NULL)
     {
         if (currentNode -> instruction == IF)
         {
-            float xUp = currentNode -> x, yUp = currentNode -> y;
-            float xDown = xUp + currentNode -> length;
-            float yDown = yUp + currentNode -> height;
+            Point topLeft;
+            topLeft.x = currentNode -> x;
+            topLeft.y = currentNode -> y;
+            Point bottomRight;
+            bottomRight.x = topLeft.x + currentNode -> length;
+            bottomRight.y = topLeft.y + currentNode -> height;
+            string str;
 
-            window.draw(decisionCreate(xUp, yUp, xDown, yDown));
+            // desenare text pentru if
+            for(int i = 1; i < (int)currentNode -> words.size(); i++)
+                str += currentNode -> words[i];
+            //window.draw(createText(xUp+(xDown-xUp)/2, yUp, (char*)str.c_str(), font));
+            
+            // desenare blocul pentru if
+            window.draw(decisionCreate(topLeft, bottomRight));
         }
         else if (currentNode -> instruction == WHILE)
         {
-            float xUp = currentNode -> x, yUp = currentNode -> y;
-            float xDown = xUp + currentNode -> length;
-            float yDown = yUp + currentNode -> height;
+            Point topLeft;
+            topLeft.x = currentNode -> x;
+            topLeft.y = currentNode -> y;
+            Point bottomRight;
+            bottomRight.x = topLeft.x + currentNode -> length;
+            bottomRight.y = topLeft.y + currentNode -> height;
             float offset = currentNode -> length / 5.; ///lungimea pentru bara din stanga
             float rectangleHeight = currentNode -> height / currentNode -> verticalNodeCount; ///inaltimea blocului fara bara din stanga
 
-            window.draw(iterationWCreate(xUp, yUp, xDown, yDown, offset, rectangleHeight));
+            window.draw(iterationWCreate(topLeft, bottomRight, offset, rectangleHeight));
         }
         else if (currentNode -> instruction != EMPTY_NODE)
         {
-            float xUp = currentNode -> x, yUp = currentNode -> y;
-            float xDown = xUp + currentNode -> length;
-            float yDown = yUp + currentNode -> height;
+            Point topLeft;
+            topLeft.x = currentNode -> x;
+            topLeft.y = currentNode -> y;
+            Point bottomRight;
+            bottomRight.x = topLeft.x + currentNode -> length;
+            bottomRight.y = topLeft.y + currentNode -> height;
 
-            window.draw(singleStepCreate(xUp, yUp, xDown, yDown));
+            window.draw(singleStepCreate(topLeft, bottomRight));
         }
 
         for (node* nextNode : currentNode -> next)
@@ -577,11 +594,10 @@ void Debugger()
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
 
-    /*
     if(!font.loadFromFile("./font.ttf")) {
         cout << "Not found file";
         exit(0);
-    }*/
+    }
 
     Debugger();
 
