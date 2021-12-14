@@ -1,16 +1,28 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <string>
 
 using namespace sf;
 
-VertexArray definitionsOrActionsCreate(float x, float y, float sx, float sy);
+struct Point {
+    float x, y;
+};
 
-VertexArray decisionCreate(float x, float y, float sx, float sy);
+struct Box {
+    float x, y, length, height;
+};
+
+Text createText(Box box, std::string str, Font &font);
+
+VertexArray definitionsOrActionsCreate(Point topLeft, Point bottomRight);
+
+VertexArray decisionCreate(Point topLeft, Point bottomRight);
 
 // same like definitionsOrActions
-VertexArray singleStepCreate(float x, float y, float sx, float sy);
+VertexArray singleStepCreate(Point topLeft, Point bottomRight);
 
-VertexArray iterationWCreate(float x, float y, float sx, float sy, float l, float h);
+VertexArray iterationWCreate(Point topLeft, Point bottomRight, float l, float h);
 
-VertexArray iterationUCreate(float x, float y, float sx, float sy, float l);
+VertexArray iterationUCreate(Point topLeft, Point bottomRight, float l);
+
 

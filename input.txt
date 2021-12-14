@@ -1,9 +1,9 @@
 while a
 if a
 pass
-while a
-pass
-pass
+while x>=123
+var int x
+set x 53
 pass
 endif
 pass
