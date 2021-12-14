@@ -518,7 +518,24 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
                 str += currentNode -> words[i];
             }
 
-            // desenare text pentru if
+            // desenarea conditiei pentru if
+            window.draw(createText(box, str, font));
+
+            // desenare True si False
+            str = "T";
+            box.x = topLeft.x;
+            box.y = topLeft.y+(bottomRight.y-topLeft.y)/2;
+            box.length = (bottomRight.x-topLeft.x)/4;
+            box.height = (bottomRight.y-topLeft.y)/4;
+
+            window.draw(createText(box, str, font));
+
+            str = "F";
+            box.x = bottomRight.x-(bottomRight.x-topLeft.x)/4;
+            box.y = topLeft.y+(bottomRight.y-topLeft.y)/2;
+            box.length = (bottomRight.x-topLeft.x)/4;
+            box.height = (bottomRight.y-topLeft.y)/4;
+
             window.draw(createText(box, str, font));
             
             // desenarea blocului pentru if
