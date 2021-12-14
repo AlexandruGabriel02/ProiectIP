@@ -213,7 +213,6 @@ void buildTree(node* &currentNode)
 
 ///parcurgerea arborelui; va trebui apelat de mai multe ori pt verificarea corectitudinii
 ///pseudocodului si calculul coordonatelor si marimii fiecarui bloc
-///functie creata pt debug
 void TreeDFS(node* currentNode, int height)
 {
     if (currentNode != NULL)
