@@ -30,10 +30,16 @@ string errorMessage[] =
 };
 
 // pozitia initiala a diagramei
-Point diagramP = {500, 100};
+Point originDiagramP = {500, 100};
+Point diagramP = originDiagramP;
 
 // variabilele pentru zoom
 float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.75;
+
+// variabilele pentru move
+bool moveScreen = false;
+Point moveP = {0, 0};
+Point amoveP = {0, 0};
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
 bool validTree = true;
@@ -635,16 +641,50 @@ void pollEvents(RenderWindow &window)
     while (window.pollEvent(event)) {
         if (event.type == Event::Closed)
             window.close();
+
+        // exit
         if (event.type == Event::KeyPressed)
         {
             if (event.key.code == Keyboard::Escape)
                 window.close();
         }
+
+        // zoom 
         if(event.type == Event::MouseWheelMoved) {
             if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
                 zoom -= zoomScale;
             else if(event.mouseWheel.delta == 1)
                 zoom += zoomScale;
+        }
+
+        // move
+        if(event.type == sf::Event::MouseButtonPressed) {
+            if(event.mouseButton.button == sf::Mouse::Left) {
+                moveScreen = true;
+                amoveP.x = event.mouseButton.x;
+                amoveP.y = event.mouseButton.y;
+            }
+        }
+        if(event.type == sf::Event::MouseButtonReleased) {
+            if(event.mouseButton.button == sf::Mouse::Left) {
+                diagramP.x += moveP.x;
+                diagramP.y += moveP.y;
+                moveScreen = false;
+            }
+        }
+        if(moveScreen) {
+            if(event.mouseMove.x == 0 || event.mouseMove.y == 0)
+                moveP = {0, 0};
+            else
+                moveP = {event.mouseMove.x-amoveP.x, event.mouseMove.y-amoveP.y};
+        }
+        
+        // pozitia initiala si zoom ul initial
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::O) {
+                diagramP = originDiagramP;
+                zoom = 1;
+            }
         }
     }
 }
@@ -656,6 +696,13 @@ void zoomMechanics() {
     Tree -> length = BLOCK_WIDTH * zoom;
     Tree -> height = BLOCK_HEIGHT * zoom;
     buildDiagram_DFS(Tree, Tree);
+}
+
+void moveMechanics(int direction) {
+    if(moveScreen) {
+        diagramP.x += direction*moveP.x;
+        diagramP.y += direction*moveP.y;
+    }
 }
 
 void updateWindow(RenderWindow &window)
@@ -705,8 +752,10 @@ int main() {
     while(window.isOpen()) {
 
         pollEvents(window);
+        moveMechanics(1);
         zoomMechanics();
         updateWindow(window);
+        moveMechanics(-1);
     }
     fin.close();
 
