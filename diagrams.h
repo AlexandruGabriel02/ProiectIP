@@ -2,8 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include <string>
 
+using namespace std;
 using namespace sf;
-///
+
 struct Point {
     float x, y;
 };
@@ -12,7 +13,7 @@ struct Box {
     float x, y, length, height;
 };
 
-Text createText(Box box, std::string str, Font &font);
+Text createText(Box box, string str, Font &font);
 
 VertexArray definitionsOrActionsCreate(Point topLeft, Point bottomRight);
 

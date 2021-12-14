@@ -2,8 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <set>
-#include "diagrams.h"
-//#include "diagrams.cpp"
+//#include "diagrams.h"
+#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -655,7 +655,6 @@ void Debugger()
     }
 }
 
-///abcdefg
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
 
