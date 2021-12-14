@@ -1,9 +1,9 @@
 #include <SFML/Graphics.hpp>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <set>
-//#include "diagrams.h"
-#include "diagrams.cpp"
+#include "diagrams.h"
 
 using namespace std;
 using namespace sf;
@@ -491,98 +491,35 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
     }
 }
 
-// desenarea diagramei
 void printDiagram_DFS(node* currentNode, RenderWindow &window)
 {
     if (currentNode != NULL)
     {
         if (currentNode -> instruction == IF)
         {
-            Point topLeft;
-            topLeft.x = currentNode -> x;
-            topLeft.y = currentNode -> y;
-            Point bottomRight;
-            bottomRight.x = topLeft.x + currentNode -> length;
-            bottomRight.y = topLeft.y + currentNode -> height;
+            float xUp = currentNode -> x, yUp = currentNode -> y;
+            float xDown = xUp + currentNode -> length;
+            float yDown = yUp + currentNode -> height;
 
-            Box box;
-            box.x = topLeft.x + (bottomRight.x-topLeft.x)/4;
-            box.y = topLeft.y;
-            box.length = (bottomRight.x-topLeft.x)/2;
-            box.height = (bottomRight.y-topLeft.y)/4;
-
-            string str;
-            for(int i = 1; i < (int)currentNode -> words.size(); i++) {
-                if(i > 1)
-                    str += ' ';
-                str += currentNode -> words[i];
-            }
-
-            // desenare text pentru if
-            window.draw(createText(box, str, font));
-            
-            // desenarea blocului pentru if
-            window.draw(decisionCreate(topLeft, bottomRight));
+            window.draw(decisionCreate(xUp, yUp, xDown, yDown));
         }
         else if (currentNode -> instruction == WHILE)
         {
-            Point topLeft;
-            topLeft.x = currentNode -> x;
-            topLeft.y = currentNode -> y;
-            Point bottomRight;
-            bottomRight.x = topLeft.x + currentNode -> length;
-            bottomRight.y = topLeft.y + currentNode -> height;
+            float xUp = currentNode -> x, yUp = currentNode -> y;
+            float xDown = xUp + currentNode -> length;
+            float yDown = yUp + currentNode -> height;
             float offset = currentNode -> length / 5.; ///lungimea pentru bara din stanga
             float rectangleHeight = currentNode -> height / currentNode -> verticalNodeCount; ///inaltimea blocului fara bara din stanga
 
-            Box box;
-            box.x = topLeft.x;
-            box.y = topLeft.y;
-            box.length = bottomRight.x-topLeft.x;
-            box.height = rectangleHeight/2;
-
-            string str;
-            for(int i = 1; i < (int)currentNode -> words.size(); i++) {
-                if(i > 1)
-                    str += ' ';
-                str += currentNode -> words[i];
-            }
-
-            // desenare text pentru while
-            window.draw(createText(box, str, font));
-
-            // desenarea blocului pentru while
-            window.draw(iterationWCreate(topLeft, bottomRight, offset, rectangleHeight));
+            window.draw(iterationWCreate(xUp, yUp, xDown, yDown, offset, rectangleHeight));
         }
         else if (currentNode -> instruction != EMPTY_NODE)
         {
-            Point topLeft;
-            topLeft.x = currentNode -> x;
-            topLeft.y = currentNode -> y;
-            Point bottomRight;
-            bottomRight.x = topLeft.x + currentNode -> length;
-            bottomRight.y = topLeft.y + currentNode -> height;
+            float xUp = currentNode -> x, yUp = currentNode -> y;
+            float xDown = xUp + currentNode -> length;
+            float yDown = yUp + currentNode -> height;
 
-            Box box;
-            box.x = topLeft.x;
-            box.y = topLeft.y;
-            box.length = bottomRight.x-topLeft.x;
-            box.height = (bottomRight.y-topLeft.y)/2;
-
-            string str;
-            for(int i = 1; i < (int)currentNode -> words.size(); i++) {
-                if(i > 1)
-                    str += ' ';
-                str += currentNode -> words[i];
-            }
-            if(currentNode -> words.size() == 1)
-                str = " ";
-
-            // desenare text pentru singleStep
-            window.draw(createText(box, str, font));
-
-            // desenarea blocului pentru singleStep
-            window.draw(singleStepCreate(topLeft, bottomRight));
+            window.draw(singleStepCreate(xUp, yUp, xDown, yDown));
         }
 
         for (node* nextNode : currentNode -> next)
@@ -640,10 +577,11 @@ void Debugger()
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
 
+    /*
     if(!font.loadFromFile("./font.ttf")) {
         cout << "Not found file";
         exit(0);
-    }
+    }*/
 
     Debugger();
 
