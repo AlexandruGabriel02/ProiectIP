@@ -638,7 +638,7 @@ void Debugger()
     }
 }
 
-///abc
+///abcdefg
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
 

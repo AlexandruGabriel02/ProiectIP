@@ -3,7 +3,7 @@
 #include <string>
 
 using namespace sf;
-
+///
 struct Point {
     float x, y;
 };
