@@ -29,6 +29,11 @@ string errorMessage[] =
     "Expresie incorecta aritmetic la linia " ///de facut
 };
 
+// pozitia initiala a diagramei
+Point diagramP = {500, 100};
+
+// variabilele pentru zoom
+float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.75;
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
 bool validTree = true;
@@ -81,11 +86,11 @@ void initTree()
     Tree = new node;
     Tree -> instruction = EMPTY_NODE;
 
-    float zoom = 1;
     Tree -> length = BLOCK_WIDTH * zoom; ///latimea standard a unui bloc
     Tree -> height = BLOCK_HEIGHT * zoom; ///inaltimea standard a unui bloc
-    Tree -> x = 300; ///coordonata x de inceput (stanga sus)
-    Tree -> y = 100; ///coordonata y de inceput stanga sus
+    //Tree -> x = diagramP.x; ///coordonata x de inceput (stanga sus)
+    Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2; //coorodnata x de inceput (mijloc sus) (ca sa fie zoom ul mai frumos)
+    Tree -> y = diagramP.y; ///coordonata y de inceput stanga sus
 }
 
 string readLineFromFile()
@@ -492,6 +497,22 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
     }
 }
 
+//buildDiagram_DFS is not working if i rerun the function with anothers variables for Tree -> x, y, length, height
+//i created a function that can clear the position
+void deletePositionDiagram_DFS(node* currentNode)
+{
+    if (currentNode != NULL)
+    {
+        currentNode -> x = 0;
+        currentNode -> y = 0;
+        currentNode -> length = 0;
+        currentNode -> height = 0;
+
+        for (node* nextNode : currentNode -> next)
+            deletePositionDiagram_DFS(nextNode);
+    }
+}
+
 // desenarea diagramei
 Font font;
 void printDiagram_DFS(node* currentNode, RenderWindow &window)
@@ -619,7 +640,22 @@ void pollEvents(RenderWindow &window)
             if (event.key.code == Keyboard::Escape)
                 window.close();
         }
+        if(event.type == Event::MouseWheelMoved) {
+            if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
+                zoom -= zoomScale;
+            else if(event.mouseWheel.delta == 1)
+                zoom += zoomScale;
+        }
     }
+}
+
+void zoomMechanics() {
+    deletePositionDiagram_DFS(Tree);
+    Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2;
+    Tree -> y = diagramP.y;
+    Tree -> length = BLOCK_WIDTH * zoom;
+    Tree -> height = BLOCK_HEIGHT * zoom;
+    buildDiagram_DFS(Tree, Tree);
 }
 
 void updateWindow(RenderWindow &window)
@@ -655,6 +691,7 @@ void Debugger()
     }
 }
 
+
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
 
@@ -668,6 +705,7 @@ int main() {
     while(window.isOpen()) {
 
         pollEvents(window);
+        zoomMechanics();
         updateWindow(window);
     }
     fin.close();
