@@ -638,7 +638,6 @@ void Debugger()
     }
 }
 
-///
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
 
