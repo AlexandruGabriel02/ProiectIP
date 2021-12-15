@@ -22,6 +22,16 @@ Text createText(Box box, string str, Font &font) {
     return text;
 }
 
+RectangleShape createRect(Point topLeft, Point bottomRight, Color colorFill, Color colorLine) {
+    RectangleShape rectangle;
+    rectangle.setSize(Vector2f(bottomRight.x-topLeft.x, bottomRight.y-topLeft.y));
+    rectangle.setFillColor(colorFill);
+    rectangle.setOutlineColor(colorLine);
+    rectangle.setOutlineThickness(1);
+    rectangle.setPosition(topLeft.x, topLeft.y);
+    return rectangle;
+}
+
 VertexArray definitionsOrActionsCreate(Point topLeft, Point bottomRight) {
     VertexArray lines(LineStrip, 5);
     lines[0].position = Vector2f(topLeft.x, topLeft.y);

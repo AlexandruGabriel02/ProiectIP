@@ -15,6 +15,8 @@ struct Box {
 
 Text createText(Box box, string str, Font &font);
 
+RectangleShape createRect(Point topLeft, Point bottomRight, Color colorFill, Color colorLine);
+
 VertexArray definitionsOrActionsCreate(Point topLeft, Point bottomRight);
 
 VertexArray decisionCreate(Point topLeft, Point bottomRight);
