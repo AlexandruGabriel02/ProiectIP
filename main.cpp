@@ -36,7 +36,7 @@ string errorMessage[] =
 Point originIDiagram = {100, 100};
 
 // pozitia initiala a diagramei
-Point originDiagramP = {300, 100};
+Point originDiagramP = {300, 150};
 Point diagramP = originDiagramP;
 
 // variabilele pentru zoom
@@ -654,6 +654,16 @@ void pollEvents(RenderWindow &window)
             if (event.key.code == Keyboard::Escape)
                 window.close();
         }
+        Vector2i positionMouse = Mouse::getPosition(window);
+        if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
+           originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
+            if(event.type == Event::MouseWheelMoved) {
+                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
+                    zoom -= zoomScale;
+                else if(event.mouseWheel.delta == 1)
+                    zoom += zoomScale;
+            }
+        }
 
         // pozitia initiala si zoom ul initial
         if(event.type == Event::KeyPressed) {
@@ -663,17 +673,6 @@ void pollEvents(RenderWindow &window)
             }
         }
     }   
-        Vector2i position = Mouse::getPosition(window);
-        //cout << position.x << ' ' << position.y << '\n';
-            // zoom 
-            if(event.type == Event::MouseWheelMoved) {
-                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
-                    zoom -= zoomScale;
-                else if(event.mouseWheel.delta == 1)
-                    zoom += zoomScale;
-            }
-
-        
 }
 
 // desenarea margenilor
