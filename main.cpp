@@ -655,36 +655,6 @@ void pollEvents(RenderWindow &window)
                 window.close();
         }
 
-        // zoom 
-        if(event.type == Event::MouseWheelMoved) {
-            if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
-                zoom -= zoomScale;
-            else if(event.mouseWheel.delta == 1)
-                zoom += zoomScale;
-        }
-
-        // move
-        if(event.type == sf::Event::MouseButtonPressed) {
-            if(event.mouseButton.button == sf::Mouse::Left) {
-                moveScreen = true;
-                amoveP.x = event.mouseButton.x;
-                amoveP.y = event.mouseButton.y;
-            }
-        }
-        if(event.type == sf::Event::MouseButtonReleased) {
-            if(event.mouseButton.button == sf::Mouse::Left) {
-                diagramP.x += moveP.x;
-                diagramP.y += moveP.y;
-                moveScreen = false;
-            }
-        }
-        if(moveScreen) {
-            if(event.mouseMove.x == 0 || event.mouseMove.y == 0)
-                moveP = {0, 0};
-            else
-                moveP = {event.mouseMove.x-amoveP.x, event.mouseMove.y-amoveP.y};
-        }
-        
         // pozitia initiala si zoom ul initial
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::O) {
@@ -692,7 +662,18 @@ void pollEvents(RenderWindow &window)
                 zoom = 1;
             }
         }
-    }
+    }   
+        Vector2i position = Mouse::getPosition(window);
+        //cout << position.x << ' ' << position.y << '\n';
+            // zoom 
+            if(event.type == Event::MouseWheelMoved) {
+                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
+                    zoom -= zoomScale;
+                else if(event.mouseWheel.delta == 1)
+                    zoom += zoomScale;
+            }
+
+        
 }
 
 // desenarea margenilor
@@ -727,10 +708,44 @@ void zoomMechanics() {
     buildDiagram_DFS(Tree, Tree);
 }
 
-void moveMechanics(int direction) {
-    if(moveScreen) {
-        diagramP.x += direction*moveP.x;
-        diagramP.y += direction*moveP.y;
+void moveMechanics(int direction, RenderWindow &window) {
+    Vector2i positionMouse = Mouse::getPosition(window);
+    if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
+       originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
+        if(direction > 0) {
+            if(Mouse::isButtonPressed(Mouse::Left) && !moveScreen) {
+                moveScreen = true;
+                amoveP.x = positionMouse.x;
+                amoveP.y = positionMouse.y;
+            }
+            else if(!Mouse::isButtonPressed(Mouse::Left) && moveScreen) {
+                diagramP.x += moveP.x;
+                diagramP.y += moveP.y;
+                moveScreen = false;
+                amoveP = {0, 0};
+                moveP = {0, 0};
+            }
+        }
+        if(moveScreen) {
+            if(direction > 0)
+                moveP = {positionMouse.x-amoveP.x, positionMouse.y-amoveP.y};
+
+            diagramP.x += direction*moveP.x;
+            diagramP.y += direction*moveP.y;
+        }
+    }
+    else {
+        if(moveScreen) {
+            if(direction > 0) {
+                diagramP.x += direction*moveP.x;
+                diagramP.y += direction*moveP.y;
+            }
+            else {
+                moveScreen = false;
+                amoveP = {0, 0};
+                moveP = {0, 0};
+            }
+        }
     }
 }
 
@@ -782,10 +797,10 @@ int main() {
     while(window.isOpen()) {
 
         pollEvents(window);
-        moveMechanics(1);
+        moveMechanics(1, window);
         zoomMechanics();
         updateWindow(window);
-        moveMechanics(-1);
+        moveMechanics(-1, window);
     }
     fin.close();
 
