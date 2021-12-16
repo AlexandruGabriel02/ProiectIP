@@ -21,7 +21,8 @@ Text createText(Box box, string str, Font &font) {
     }
     text.setCharacterSize(st);
     text.setLetterSpacing(0.5);
-    text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2-5, box.y+(box.height-text.getLocalBounds().height)/2);
+    text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+(box.height-text.getLocalBounds().height)/2);
+    text.setOrigin(text.getLocalBounds().left, text.getLocalBounds().top);
     return text;
 }
 
