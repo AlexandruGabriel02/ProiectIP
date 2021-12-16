@@ -722,11 +722,6 @@ void interfaceDraw(RenderWindow &window) {
     topLeft = {originIDiagram.x+DIAGRAM_WIDTH, 0};
     bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-    // fac spatiu pentru code interface
-    //// stanga
-    //topLeft = {0, 0};
-    //bottomRight = {originIDiagram.x, SCREEN_HEIGHT};
-    //window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
     // stanga
     topLeft = {0, 0};
     bottomRight = {originICode.x, SCREEN_HEIGHT};
