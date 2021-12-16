@@ -10,13 +10,16 @@ Text createText(Box box, string str, Font &font) {
     Text text;
     text.setFont(font);
     text.setString(str);
-    float i = 1;
-    text.setCharacterSize(i);
-    while(text.getLocalBounds().width <= box.length && text.getLocalBounds().height <= box.height) {
-        i += 1;
-        text.setCharacterSize(i);
+    float st = 1, dr = 450;
+    while(st <= dr) {
+        float mij = (st+dr)/2;
+        text.setCharacterSize(mij);
+        if(text.getLocalBounds().width <= box.length && text.getLocalBounds().height <= box.height)
+            st = mij+1;
+        else
+            dr = mij-1;
     }
-    text.setCharacterSize(i-1);
+    text.setCharacterSize(st);
     text.setLetterSpacing(0.5);
     text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2-5, box.y+(box.height-text.getLocalBounds().height)/2);
     return text;
