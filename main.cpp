@@ -728,7 +728,7 @@ void interfaceDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
     // middle
     topLeft = {originICode.x+CODE_WIDTH, MARGIN+1};
-    bottomRight = {originICode.x+CODE_WIDTH+CODE_MARGIN_WIDTH+DIAGRAM_MARGIN_WIDTH, SCREEN_HEIGHT-MARGIN};
+    bottomRight = {originIDiagram.x, SCREEN_HEIGHT-MARGIN};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
     // jos
     topLeft = {0, originIDiagram.y+DIAGRAM_HEIGHT};
