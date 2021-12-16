@@ -121,7 +121,7 @@ void clearTree(node* &currentNode)
     }
 }
 
-
+// initializarea arborelui
 void initTree()
 {
     //clearTree();
@@ -135,6 +135,7 @@ void initTree()
     Tree -> y = diagramP.y; ///coordonata y de inceput stanga sus
 }
 
+// citirea din fisier line by line
 string readLineFromFile()
 {
     string str;
@@ -142,6 +143,7 @@ string readLineFromFile()
     return str;
 }
 
+// imparte un sir in cuvinte
 vector<string> splitIntoWords(string str)
 {
     vector<string> result;
@@ -166,6 +168,7 @@ vector<string> splitIntoWords(string str)
     return result;
 }
 
+// optine instruction type
 instructionType getInstructionType(vector<string> vStr)
 {
     ///returneaza primul cuvant
@@ -193,6 +196,7 @@ instructionType getInstructionType(vector<string> vStr)
     return ERROR;
 }
 
+// construirea arborelui
 void buildTree(node* &currentNode)
 {
     static int lineCount = 0; ///linia de cod la care ma aflu
@@ -480,6 +484,7 @@ void buildDP_DFS(node* &currentNode)
     }
 }
 
+// pregatire pentru desenarea diagramei
 void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
 {
     if (currentNode != NULL)
@@ -671,6 +676,7 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
     }
 }
 
+// events
 void pollEvents(RenderWindow &window) {
     Event event;
     while(window.pollEvent(event)) {
@@ -766,6 +772,7 @@ void backgroundCodeDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
+// mecanismul pentru redimensionare
 void resizeMechanics(RenderWindow &window) {
     View view = window.getView();
     bool correctWidth = true;
@@ -805,6 +812,7 @@ void resizeMechanics(RenderWindow &window) {
     window.setView(view);
 }
 
+// mecanismul pentru zoom
 void zoomMechanics() {
     deletePositionDiagram_DFS(Tree);
     Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2;
@@ -814,6 +822,7 @@ void zoomMechanics() {
     buildDiagram_DFS(Tree, Tree);
 }
 
+// mecanismul pentru miscarea diagramei
 void moveMechanics(int direction, RenderWindow &window) {
     Vector2i positionMouse = Mouse::getPosition(window);
     if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
@@ -857,6 +866,7 @@ void moveMechanics(int direction, RenderWindow &window) {
     }
 }
 
+// actualizarea ferestrei
 void updateWindow(RenderWindow &window)
 {
     window.clear();
