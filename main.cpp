@@ -19,13 +19,26 @@ float MINSCR_HEIGHT = 585;
 bool sizeScreen = false;
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
+#define MARGIN 75
+// interface look
+// D - diagram interface
+// C - code interface
+// [       ]
+// [ CC DD ]
+// [ CC DD ]
+// [       ]
 // interfata diagramei
 #define DIAGRAM_MARGIN_WIDTH 75
-#define DIAGRAM_MARGIN_HEIGHT 75
+#define DIAGRAM_MARGIN_HEIGHT MARGIN
 //#define DIAGRAM_WIDTH 500
 //#define DIAGRAM_HEIGHT 700
 float DIAGRAM_WIDTH = SCREEN_WIDTH/2-DIAGRAM_MARGIN_WIDTH*2;
 float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
+// interfata code
+#define CODE_MARGIN_WIDTH 75
+#define CODE_MARGIN_HEIGHT MARGIN
+float CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
+float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
 
 
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
@@ -48,6 +61,13 @@ Point originIDiagram = {SCREEN_WIDTH-DIAGRAM_WIDTH-DIAGRAM_MARGIN_WIDTH, DIAGRAM
 // pozitia initiala a diagramei
 Point originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2, originIDiagram.y+50};
 Point diagramP = originDiagramP;
+
+// pozitia interfatei code
+Point originICode = {CODE_MARGIN_WIDTH, CODE_MARGIN_HEIGHT};
+
+// pozitia initiala a codului
+Point originCodeP = {originICode.x, originICode.y+50};
+Point codeP = originCodeP;
 
 // variabilele pentru zoom
 float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.75;
@@ -694,7 +714,6 @@ void interfaceDraw(RenderWindow &window) {
     Point topLeft, bottomRight;
     Color colorFill(20, 20,20), colorLine(255, 255, 255);
 
-    // Diagram
     // sus
     topLeft = {0, 0};
     bottomRight = {SCREEN_WIDTH, originIDiagram.y};
@@ -708,15 +727,47 @@ void interfaceDraw(RenderWindow &window) {
     //topLeft = {0, 0};
     //bottomRight = {originIDiagram.x, SCREEN_HEIGHT};
     //window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+    // stanga
+    topLeft = {0, 0};
+    bottomRight = {originICode.x, SCREEN_HEIGHT};
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+    // middle
+    topLeft = {originICode.x+CODE_WIDTH, MARGIN+1};
+    bottomRight = {originICode.x+CODE_WIDTH+CODE_MARGIN_WIDTH+DIAGRAM_MARGIN_WIDTH, SCREEN_HEIGHT-MARGIN};
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
     // jos
     topLeft = {0, originIDiagram.y+DIAGRAM_HEIGHT};
     bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-    // border
+    // border diagram
     topLeft = {originIDiagram.x+2, originIDiagram.y+2};
     bottomRight = {topLeft.x+DIAGRAM_WIDTH-4, topLeft.y+DIAGRAM_HEIGHT-4};
     colorFill = Color(0, 0, 0, 0);
     colorLine = Color(255, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+    // border code
+    topLeft = {originICode.x+2, originICode.y+2};
+    bottomRight = {topLeft.x+CODE_WIDTH-4, topLeft.y+CODE_HEIGHT-4};
+    colorFill = Color(0, 0, 0, 0);
+    colorLine = Color(255, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+}
+
+// background color for diagramCut
+void backgroundDiagramDraw(RenderWindow &window) {
+    Point topLeft = originIDiagram;
+    Point bottomRight = {topLeft.x+DIAGRAM_WIDTH, topLeft.y+DIAGRAM_HEIGHT};
+    Color colorFill = Color(14, 10, 10);
+    Color colorLine = Color(0, 0, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+}
+
+// background color for codeCut
+void backgroundCodeDraw(RenderWindow &window) {
+    Point topLeft = originICode;
+    Point bottomRight = {topLeft.x+CODE_WIDTH, topLeft.y+CODE_HEIGHT};
+    Color colorFill = Color(14, 10, 10);
+    Color colorLine = Color(0, 0, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
@@ -749,6 +800,8 @@ void resizeMechanics(RenderWindow &window) {
         diagramP = originDiagramP;
         DIAGRAM_WIDTH = SCREEN_WIDTH/2-DIAGRAM_MARGIN_WIDTH*2;
         DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
+        CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
+        CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
         if((int)SCREEN_HEIGHT%2 == 1)
             SCREEN_HEIGHT += 1;
         view.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -811,12 +864,11 @@ void updateWindow(RenderWindow &window)
 {
     window.clear();
 
-    // background color for diagramCut
-    Point topLeft = originIDiagram;
-    Point bottomRight = {topLeft.x+DIAGRAM_WIDTH, topLeft.y+DIAGRAM_HEIGHT};
-    Color colorFill = Color(14, 10, 10);
-    Color colorLine = Color(0, 0, 0, 0);
-    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+    backgroundCodeDraw(window);
+
+    // aici o sa fie desenarea codului (o fac eu)
+
+    backgroundDiagramDraw(window);
     printDiagram_DFS(Tree, window);
     interfaceDraw(window);
 
