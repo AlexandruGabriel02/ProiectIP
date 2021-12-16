@@ -10,14 +10,25 @@ using namespace sf;
 
 ifstream fin("input.txt");
 
-#define SCREEN_WIDTH 1200
-#define SCREEN_HEIGHT 900
+//#define SCREEN_WIDTH 1200
+//#define SCREEN_HEIGHT 900
+float SCREEN_WIDTH = 1280;
+float SCREEN_HEIGHT = 720;
+float MINSCR_WIDTH = 1158;
+float MINSCR_HEIGHT = 585;
+bool sizeScreen = false;
 #define SIZE 1000
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
 // interfata diagramei
-#define DIAGRAM_WIDTH 500
-#define DIAGRAM_HEIGHT 700
+#define DIAGRAM_MARGIN_WIDTH 75
+#define DIAGRAM_MARGIN_HEIGHT 75
+//#define DIAGRAM_WIDTH 500
+//#define DIAGRAM_HEIGHT 700
+float DIAGRAM_WIDTH = 500;
+float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
+
+
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
@@ -33,10 +44,10 @@ string errorMessage[] =
 };
 
 // pozita interfatei diagramei
-Point originIDiagram = {100, 100};
+Point originIDiagram = {SCREEN_WIDTH-DIAGRAM_WIDTH-DIAGRAM_MARGIN_WIDTH, DIAGRAM_MARGIN_HEIGHT};
 
 // pozitia initiala a diagramei
-Point originDiagramP = {300, 150};
+Point originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2, originIDiagram.y+50};
 Point diagramP = originDiagramP;
 
 // variabilele pentru zoom
@@ -641,17 +652,15 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
     }
 }
 
-void pollEvents(RenderWindow &window)
-{
+void pollEvents(RenderWindow &window) {
     Event event;
-    while (window.pollEvent(event)) {
-        if (event.type == Event::Closed)
+    while(window.pollEvent(event)) {
+        if(event.type == Event::Closed)
             window.close();
 
         // exit
-        if (event.type == Event::KeyPressed)
-        {
-            if (event.key.code == Keyboard::Escape)
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::Escape)
                 window.close();
         }
         Vector2i positionMouse = Mouse::getPosition(window);
@@ -672,7 +681,16 @@ void pollEvents(RenderWindow &window)
                 zoom = 1;
             }
         }
-    }   
+
+        // rezise
+        View view = window.getView();
+        cout << window.getSize().x << ' ' << window.getSize().y << '\n';
+        cout << SCREEN_WIDTH << ' ' << SCREEN_HEIGHT << "\n\n";
+        if((abs(window.getSize().x-SCREEN_WIDTH) > 1 || abs(window.getSize().y-SCREEN_HEIGHT) > 1) && event.type != Event::Resized && !sizeScreen) {
+            cout<<"fcklsjdflk\n";
+            sizeScreen = true;
+        }
+    }
 }
 
 // desenarea margenilor
@@ -696,6 +714,42 @@ void interfaceDiagramDraw(RenderWindow &window) {
     topLeft = {0, originIDiagram.y+DIAGRAM_HEIGHT};
     bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+}
+
+void resizeMechanics(RenderWindow &window) {
+    View view = window.getView();
+    bool correctWidth = true;
+    bool correctHeight = true;
+    if(window.getSize().x < MINSCR_WIDTH)
+        correctWidth = false;
+    if(window.getSize().y < MINSCR_HEIGHT)
+        correctHeight = false;
+    if((abs(window.getSize().x-SCREEN_WIDTH) > 1 || abs(window.getSize().y-SCREEN_HEIGHT) > 1) && (sizeScreen || (correctWidth && correctHeight))) {
+        if(!correctWidth && !correctHeight) {
+            window.setSize(Vector2u(MINSCR_WIDTH, MINSCR_HEIGHT));
+            sizeScreen = false;
+        }
+        else if(!correctWidth) {
+            window.setSize(Vector2u(MINSCR_WIDTH, window.getSize().y));
+            sizeScreen = false;
+        }
+        else if(!correctHeight) {
+            window.setSize(Vector2u(window.getSize().x, MINSCR_HEIGHT));
+            sizeScreen = false;
+        }
+        view = window.getView();
+        SCREEN_WIDTH = window.getSize().x;
+        SCREEN_HEIGHT = window.getSize().y;
+        originIDiagram = {SCREEN_WIDTH-DIAGRAM_WIDTH-DIAGRAM_MARGIN_WIDTH, DIAGRAM_MARGIN_HEIGHT};
+        originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2, originIDiagram.y+50};
+        diagramP = originDiagramP;
+        DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
+        if((int)SCREEN_HEIGHT%2 == 1)
+            SCREEN_HEIGHT += 1;
+        view.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        view.setCenter(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
+    }
+    window.setView(view);
 }
 
 void zoomMechanics() {
@@ -794,12 +848,13 @@ int main() {
     Debugger();
 
     while(window.isOpen()) {
-
         pollEvents(window);
+        resizeMechanics(window);
         moveMechanics(1, window);
         zoomMechanics();
         updateWindow(window);
         moveMechanics(-1, window);
+        sizeScreen = false;
     }
     fin.close();
 
