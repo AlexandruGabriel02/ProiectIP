@@ -683,8 +683,6 @@ void pollEvents(RenderWindow &window) {
 
         // rezise
         View view = window.getView();
-        cout << window.getSize().x << ' ' << window.getSize().y << '\n';
-        cout << SCREEN_WIDTH << ' ' << SCREEN_HEIGHT << "\n\n";
         if((abs(window.getSize().x-SCREEN_WIDTH) > 1 || abs(window.getSize().y-SCREEN_HEIGHT) > 1) && event.type != Event::Resized && !sizeScreen) {
             cout<<"fcklsjdflk\n";
             sizeScreen = true;
