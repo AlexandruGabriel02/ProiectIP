@@ -20,6 +20,8 @@ bool sizeScreen = false;
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
 #define MARGIN 75
+#define NUMBER_OF_BUTTONS 7
+#define BLOCK_BUTTON_WIDTH 100
 // interface look
 // D - diagram interface
 // C - code interface
@@ -82,50 +84,42 @@ Point amoveP = {0, 0};
 struct Button {
     Point topLeft, bottomRight;
     buttonType type;
-    Color colorFill, colorLine, colorOnHoldFill;
+    Color colorFill, colorLine, colorOnPressFill;
+    bool press;
     string str;
 
     bool mouseOnButton(float x, float y) {
         return (topLeft.x < x && x < bottomRight.x && topLeft.y < y && y < bottomRight.y);
     }
-    void activate() {
-        if(type == RUN) {
-            // make the diagram and print
-            // bonus: compile
-        }
-        else if(type == SHOW) {
-            // show another buttons
-        }
-        else if(type == ABOUT) {
-            // show a page about the team
-        }
-        else if(type == SAVE) {
-            // save the code from editor to file
-        }
-        else if(type == LOAD) {
-            // load the code from a file to editor
-        }
-        else if(type == UNDO) {
-            // undo the writing in the editor
-        }
-        else if(type == REDO) {
-            // redo the writing in the editor
-        }
-
-    }
-    void draw(RenderWindow &window, Font &font, bool hold) {
-        if(!hold)
+    void draw(RenderWindow &window, Font &font) {
+        if(!press)
             window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
         else
-            window.draw(createRect(topLeft, bottomRight, colorOnHoldFill, colorLine));
+            window.draw(createRect(topLeft, bottomRight, colorOnPressFill, colorLine));
         Box box;
-        box.x = topLeft.x;
-        box.y = topLeft.y;
-        box.length = bottomRight.x-topLeft.x;
-        box.height = (bottomRight.y-topLeft.y)/2;
+        box.x = topLeft.x+(bottomRight.x-topLeft.x)/8;
+        box.y = topLeft.y+(bottomRight.y-topLeft.y)/8;
+        box.length = bottomRight.x-topLeft.x-(bottomRight.x-topLeft.x)/4;
+        box.height = bottomRight.y-topLeft.y-(bottomRight.y-topLeft.y)/4;
         window.draw(createText(box, str, font));
     }
-} button;
+};
+
+// butoanele
+//vector <Button> buttons(NUMBER_OF_BUTTONS);
+vector <Button> buttons(1);
+
+void createAllButtons() {
+    // RUN
+    buttons[0].topLeft = {originICode.x+50, MARGIN/4};
+    buttons[0].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[0].type = RUN;
+    buttons[0].colorFill = Color(28, 28, 28);
+    buttons[0].colorLine = Color(255, 0, 0);
+    buttons[0].colorOnPressFill = Color(0, 255, 0);
+    buttons[0].press = false;
+    buttons[0].str = "RUN";
+}
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
 bool validTree = true;
@@ -822,6 +816,50 @@ void backgroundCodeDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
+// parte din mecanismul pentru butoane
+void activateButton(Button button) {
+    if(button.type == RUN) {
+        // make the diagram and print
+        // bonus: compile
+    }
+    else if(button.type == SHOW) {
+        // show another buttons
+    }
+    else if(button.type == ABOUT) {
+        // show a page about the team
+    }
+    else if(button.type == SAVE) {
+        // save the code from editor to file
+    }
+    else if(button.type == LOAD) {
+        // load the code from a file to editor
+    }
+    else if(button.type == UNDO) {
+        // undo the writing in the editor
+    }
+    else if(button.type == REDO) {
+        // redo the writing in the editor
+    }
+
+}
+
+// mecanismul pentru butoane
+void buttonsMechanics(RenderWindow &window) {
+    Vector2i positionMouse = Mouse::getPosition(window);
+    for(int i = 0; i < (int)buttons.size(); i++) {
+        if(buttons[i].mouseOnButton(positionMouse.x, positionMouse.y)) {
+            if(Mouse::isButtonPressed(Mouse::Left))
+                buttons[i].press = true;
+            else if(buttons[i].press) {
+                buttons[i].press = false;
+                activateButton(buttons[i]);
+            }
+        }
+        else
+            buttons[i].press = false;
+    }
+}
+
 // mecanismul pentru redimensionare
 void resizeMechanics(RenderWindow &window) {
     View view = window.getView();
@@ -926,11 +964,16 @@ void updateWindow(RenderWindow &window)
     // aici o sa fie desenarea codului (o fac eu)
 
     interfaceDraw(window);
+
+    // afisare butoane
+    for(Button button:buttons)
+        button.draw(window, font);
     window.display();
 }
 
 void Debugger()
 {
+    createAllButtons();
     initTree();
     buildTree(Tree);
     checkErrors_DFS(Tree);
@@ -967,6 +1010,7 @@ int main() {
 
     while(window.isOpen()) {
         pollEvents(window);
+        buttonsMechanics(window);
         resizeMechanics(window);
         moveMechanics(1, window);
         zoomMechanics();
