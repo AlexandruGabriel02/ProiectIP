@@ -88,6 +88,31 @@ struct Button {
     bool mouseOnButton(float x, float y) {
         return (topLeft.x < x && x < bottomRight.x && topLeft.y < y && y < bottomRight.y);
     }
+    void activate() {
+        if(type == RUN) {
+            // make the diagram and print
+            // bonus: compile
+        }
+        else if(type == SHOW) {
+            // show another buttons
+        }
+        else if(type == ABOUT) {
+            // show a page about the team
+        }
+        else if(type == SAVE) {
+            // save the code from editor to file
+        }
+        else if(type == LOAD) {
+            // load the code from a file to editor
+        }
+        else if(type == UNDO) {
+            // undo the writing in the editor
+        }
+        else if(type == REDO) {
+            // redo the writing in the editor
+        }
+
+    }
     void draw(RenderWindow &window, Font &font, bool hold) {
         if(!hold)
             window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
