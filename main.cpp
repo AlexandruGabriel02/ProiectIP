@@ -833,8 +833,10 @@ void moveMechanics(int direction, RenderWindow &window) {
             }
         }
         if(moveScreen) {
-            if(direction > 0)
-                moveP = {positionMouse.x-amoveP.x, positionMouse.y-amoveP.y};
+            if(direction > 0) {
+                if(diagramP.x+positionMouse.x-amoveP.x-(BLOCK_WIDTH*zoom)/2 > originIDiagram.x)
+                    moveP = {positionMouse.x-amoveP.x, positionMouse.y-amoveP.y};
+            }
 
             diagramP.x += direction*moveP.x;
             diagramP.y += direction*moveP.y;
