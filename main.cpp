@@ -602,7 +602,7 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 
             Box box;
             box.x = topLeft.x + (bottomRight.x-topLeft.x)/4;
-            box.y = topLeft.y;
+            box.y = topLeft.y+5;
             box.length = (bottomRight.x-topLeft.x)/2;
             box.height = (bottomRight.y-topLeft.y)/2;
 
@@ -616,7 +616,6 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 
             // desenarea conditiei pentru if
             window.draw(createText(box, str, font));
-            window.draw(createRect({box.x, box.y}, {box.x+box.length, box.y+box.height}, Color(0, 0, 0, 0), Color(0, 255, 0)));
 
             // desenare True si False
             str = "T";
@@ -626,7 +625,6 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             box.height = (bottomRight.y-topLeft.y)/2;
 
             window.draw(createText(box, str, font));
-            window.draw(createRect({box.x, box.y}, {box.x+box.length, box.y+box.height}, Color(0, 0, 0, 0), Color(0, 255, 0)));
 
             str = "F";
             box.x = bottomRight.x-(bottomRight.x-topLeft.x)/4;
@@ -635,7 +633,6 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             box.height = (bottomRight.y-topLeft.y)/2;
 
             window.draw(createText(box, str, font));
-            window.draw(createRect({box.x, box.y}, {box.x+box.length, box.y+box.height}, Color(0, 0, 0, 0), Color(0, 255, 0)));
 
             // desenarea blocului pentru if
             window.draw(decisionCreate(topLeft, bottomRight));
@@ -666,7 +663,6 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 
             // desenare text pentru while
             window.draw(createText(box, str, font));
-            window.draw(createRect({box.x, box.y}, {box.x+box.length, box.y+box.height}, Color(0, 0, 0, 0), Color(0, 255, 0)));
 
             // desenarea blocului pentru while
             window.draw(iterationWCreate(topLeft, bottomRight, offset, rectangleHeight));
@@ -695,7 +691,6 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 
             // desenare text pentru singleStep
             window.draw(createText(box, str, font));
-            window.draw(createRect({box.x, box.y}, {box.x+box.length, box.y+box.height}, Color(0, 0, 0, 0), Color(0, 255, 0)));
 
             // desenarea blocului pentru singleStep
             window.draw(singleStepCreate(topLeft, bottomRight));
@@ -906,20 +901,6 @@ void updateWindow(RenderWindow &window)
     // aici o sa fie desenarea codului (o fac eu)
 
     interfaceDraw(window);
-    //Box box;
-    //box.x = 50;
-    //box.y = 50;
-    //box.length = 100;
-    //box.height = 50;
-    //Text txt = createText(box, "hi iam herasdlfjlasdjasdjfklsadjkfklsadfe", font);
-    //cout << txt.getLocalBounds().height << '\n';
-    //cout << txt.getPosition().x << '\n';
-    //cout << txt.getPosition().y << '\n';
-    //cout << '\n';
-    //window.draw(txt);
-    //window.draw(createRect({50, 50}, {150, 100}, Color(0, 0, 0, 0), Color(255, 0, 0)));
-    //window.draw(createRect({50, 50}, {50+txt.getLocalBounds().width, 50+txt.getLocalBounds().height}, Color(0, 0, 0, 0), Color(0, 255, 0)));
-    //window.draw(createRect({box.x, box.y}, {box.x+5, box.y+5}, Color(200, 0, 255), Color(200, 0, 255)));
     window.display();
 }
 
