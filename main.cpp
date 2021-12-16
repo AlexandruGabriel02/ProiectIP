@@ -44,6 +44,7 @@ float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
+enum buttonType {RUN, SHOW, ABOUT, SAVE, LOAD, UNDO, REDO};
 string errorMessage[] =
 {
     "Instructiune invalida la linia ",
@@ -76,6 +77,30 @@ float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.75;
 bool moveScreen = false;
 Point moveP = {0, 0};
 Point amoveP = {0, 0};
+
+// structura butonului
+struct Button {
+    Point topLeft, bottomRight;
+    buttonType type;
+    Color colorFill, colorLine, colorOnHoldFill;
+    string str;
+
+    bool mouseOnButton(float x, float y) {
+        return (topLeft.x < x && x < bottomRight.x && topLeft.y < y && y < bottomRight.y);
+    }
+    void draw(RenderWindow &window, Font &font, bool hold) {
+        if(!hold)
+            window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+        else
+            window.draw(createRect(topLeft, bottomRight, colorOnHoldFill, colorLine));
+        Box box;
+        box.x = topLeft.x;
+        box.y = topLeft.y;
+        box.length = bottomRight.x-topLeft.x;
+        box.height = (bottomRight.y-topLeft.y)/2;
+        window.draw(createText(box, str, font));
+    }
+} button;
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
 bool validTree = true;
@@ -876,7 +901,6 @@ void updateWindow(RenderWindow &window)
     // aici o sa fie desenarea codului (o fac eu)
 
     interfaceDraw(window);
-
     window.display();
 }
 
@@ -907,6 +931,7 @@ void Debugger()
 
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
+
 
     if(!font.loadFromFile("./font.ttf")) {
         cout << "Not found file";
