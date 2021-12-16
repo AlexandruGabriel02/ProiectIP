@@ -25,6 +25,15 @@ Text createText(Box box, string str, Font &font) {
     return text;
 }
 
+CircleShape createCircle(Point middle, float r, Color colorFill, Color colorLine, Font &font) {
+    CircleShape circle(r);
+    circle.setPosition(middle.x-r, middle.y-r);
+    circle.setFillColor(colorFill);
+    circle.setOutlineThickness(1);
+    circle.setOutlineColor(colorLine);
+    return circle;
+}
+
 RectangleShape createRect(Point topLeft, Point bottomRight, Color colorFill, Color colorLine) {
     RectangleShape rectangle;
     rectangle.setSize(Vector2f(bottomRight.x-topLeft.x, bottomRight.y-topLeft.y));
@@ -96,17 +105,5 @@ VertexArray iterationUCreate(Point topLeft, Point bottomRight, float l) {
     lines[6].position = Vector2f(topLeft.x, topLeft.y);
     return lines;
 }
-
-/*
-Font font;
-
-CircleShape createCircle(int x, int y, int r) {
-    CircleShape circle(r);
-    circle.setPosition(x-r, y-r);
-    circle.setFillColor(Color(0, 0, 0, 0));
-    circle.setOutlineThickness(2);
-    circle.setOutlineColor(Color(255, 255, 255));
-    return circle;
-}*/
 
 
