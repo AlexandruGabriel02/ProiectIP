@@ -17,7 +17,6 @@ float SCREEN_HEIGHT = 720;
 float MINSCR_WIDTH = 1158;
 float MINSCR_HEIGHT = 585;
 bool sizeScreen = false;
-#define SIZE 1000
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
 // interfata diagramei
