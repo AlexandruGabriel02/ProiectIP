@@ -24,7 +24,7 @@ bool sizeScreen = false;
 #define DIAGRAM_MARGIN_HEIGHT 75
 //#define DIAGRAM_WIDTH 500
 //#define DIAGRAM_HEIGHT 700
-float DIAGRAM_WIDTH = 500;
+float DIAGRAM_WIDTH = SCREEN_WIDTH/2-DIAGRAM_MARGIN_WIDTH*2;
 float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
 
 
@@ -690,10 +690,11 @@ void pollEvents(RenderWindow &window) {
 }
 
 // desenarea margenilor
-void interfaceDiagramDraw(RenderWindow &window) {
+void interfaceDraw(RenderWindow &window) {
     Point topLeft, bottomRight;
     Color colorFill(20, 20,20), colorLine(255, 255, 255);
 
+    // Diagram
     // sus
     topLeft = {0, 0};
     bottomRight = {SCREEN_WIDTH, originIDiagram.y};
@@ -702,13 +703,20 @@ void interfaceDiagramDraw(RenderWindow &window) {
     topLeft = {originIDiagram.x+DIAGRAM_WIDTH, 0};
     bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-    // stanga
-    topLeft = {0, 0};
-    bottomRight = {originIDiagram.x, SCREEN_HEIGHT};
-    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+    // fac spatiu pentru code interface
+    //// stanga
+    //topLeft = {0, 0};
+    //bottomRight = {originIDiagram.x, SCREEN_HEIGHT};
+    //window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
     // jos
     topLeft = {0, originIDiagram.y+DIAGRAM_HEIGHT};
     bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+    // border
+    topLeft = {originIDiagram.x+2, originIDiagram.y+2};
+    bottomRight = {topLeft.x+DIAGRAM_WIDTH-4, topLeft.y+DIAGRAM_HEIGHT-4};
+    colorFill = Color(0, 0, 0, 0);
+    colorLine = Color(255, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
@@ -739,6 +747,7 @@ void resizeMechanics(RenderWindow &window) {
         originIDiagram = {SCREEN_WIDTH-DIAGRAM_WIDTH-DIAGRAM_MARGIN_WIDTH, DIAGRAM_MARGIN_HEIGHT};
         originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2, originIDiagram.y+50};
         diagramP = originDiagramP;
+        DIAGRAM_WIDTH = SCREEN_WIDTH/2-DIAGRAM_MARGIN_WIDTH*2;
         DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
         if((int)SCREEN_HEIGHT%2 == 1)
             SCREEN_HEIGHT += 1;
@@ -802,8 +811,14 @@ void updateWindow(RenderWindow &window)
 {
     window.clear();
 
+    // background color for diagramCut
+    Point topLeft = originIDiagram;
+    Point bottomRight = {topLeft.x+DIAGRAM_WIDTH, topLeft.y+DIAGRAM_HEIGHT};
+    Color colorFill = Color(14, 10, 10);
+    Color colorLine = Color(0, 0, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
     printDiagram_DFS(Tree, window);
-    interfaceDiagramDraw(window);
+    interfaceDraw(window);
 
     window.display();
 }
