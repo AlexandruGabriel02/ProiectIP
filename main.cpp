@@ -106,8 +106,7 @@ struct Button {
 };
 
 // butoanele
-//vector <Button> buttons(NUMBER_OF_BUTTONS);
-vector <Button> buttons(1);
+vector <Button> buttons(NUMBER_OF_BUTTONS);
 
 void createAllButtons() {
     // RUN
@@ -119,6 +118,66 @@ void createAllButtons() {
     buttons[0].colorOnPressFill = Color(0, 255, 0);
     buttons[0].press = false;
     buttons[0].str = "RUN";
+
+    // SHOW
+    buttons[1].topLeft = {originICode.x+50, MARGIN/4+50};
+    buttons[1].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+50};
+    buttons[1].type = SHOW;
+    buttons[1].colorFill = Color(28, 28, 28);
+    buttons[1].colorLine = Color(255, 0, 0);
+    buttons[1].colorOnPressFill = Color(0, 255, 0);
+    buttons[1].press = false;
+    buttons[1].str = "SHOW";
+
+    // ABOUT
+    buttons[2].topLeft = {originICode.x+50, MARGIN/4+100};
+    buttons[2].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+100};
+    buttons[2].type = ABOUT;
+    buttons[2].colorFill = Color(28, 28, 28);
+    buttons[2].colorLine = Color(255, 0, 0);
+    buttons[2].colorOnPressFill = Color(0, 255, 0);
+    buttons[2].press = false;
+    buttons[2].str = "ABOUT";
+
+    // SAVE
+    buttons[3].topLeft = {originICode.x+50, MARGIN/4+150};
+    buttons[3].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+150};
+    buttons[3].type = SAVE;
+    buttons[3].colorFill = Color(28, 28, 28);
+    buttons[3].colorLine = Color(255, 0, 0);
+    buttons[3].colorOnPressFill = Color(0, 255, 0);
+    buttons[3].press = false;
+    buttons[3].str = "SAVE";
+
+    // LOAD
+    buttons[4].topLeft = {originICode.x+50, MARGIN/4+200};
+    buttons[4].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+200};
+    buttons[4].type = LOAD;
+    buttons[4].colorFill = Color(28, 28, 28);
+    buttons[4].colorLine = Color(255, 0, 0);
+    buttons[4].colorOnPressFill = Color(0, 255, 0);
+    buttons[4].press = false;
+    buttons[4].str = "LOAD";
+
+    // UNDO
+    buttons[5].topLeft = {originICode.x+50, MARGIN/4+250};
+    buttons[5].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+250};
+    buttons[5].type = UNDO;
+    buttons[5].colorFill = Color(28, 28, 28);
+    buttons[5].colorLine = Color(255, 0, 0);
+    buttons[5].colorOnPressFill = Color(0, 255, 0);
+    buttons[5].press = false;
+    buttons[5].str = "UNDO";
+
+    // REDO
+    buttons[6].topLeft = {originICode.x+50, MARGIN/4+300};
+    buttons[6].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+300};
+    buttons[6].type = REDO;
+    buttons[6].colorFill = Color(28, 28, 28);
+    buttons[6].colorLine = Color(255, 0, 0);
+    buttons[6].colorOnPressFill = Color(0, 255, 0);
+    buttons[6].press = false;
+    buttons[6].str = "REDO";
 }
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
@@ -819,25 +878,32 @@ void backgroundCodeDraw(RenderWindow &window) {
 // parte din mecanismul pentru butoane
 void activateButton(Button button) {
     if(button.type == RUN) {
+        cout << "you pressed RUN\n";
         // make the diagram and print
         // bonus: compile
     }
     else if(button.type == SHOW) {
+        cout << "you pressed SHOW\n";
         // show another buttons
     }
     else if(button.type == ABOUT) {
+        cout << "you pressed ABOUT\n";
         // show a page about the team
     }
     else if(button.type == SAVE) {
+        cout << "you pressed SAVE\n";
         // save the code from editor to file
     }
     else if(button.type == LOAD) {
+        cout << "you pressed LOAD\n";
         // load the code from a file to editor
     }
     else if(button.type == UNDO) {
+        cout << "you pressed UNDO\n";
         // undo the writing in the editor
     }
     else if(button.type == REDO) {
+        cout << "you pressed REDO\n";
         // redo the writing in the editor
     }
 
