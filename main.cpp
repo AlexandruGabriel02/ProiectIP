@@ -85,7 +85,7 @@ struct Button {
     Point topLeft, bottomRight;
     buttonType type;
     Color colorFill, colorLine, colorOnPressFill;
-    bool press;
+    bool press, prepForPress;
     string str;
 
     bool mouseOnButton(float x, float y) {
@@ -117,6 +117,7 @@ void createAllButtons() {
     buttons[0].colorLine = Color(255, 0, 0);
     buttons[0].colorOnPressFill = Color(0, 255, 0);
     buttons[0].press = false;
+    buttons[0].prepForPress = false;
     buttons[0].str = "RUN";
 
     // SHOW
@@ -127,6 +128,7 @@ void createAllButtons() {
     buttons[1].colorLine = Color(255, 0, 0);
     buttons[1].colorOnPressFill = Color(0, 255, 0);
     buttons[1].press = false;
+    buttons[1].prepForPress = false;
     buttons[1].str = "SHOW";
 
     // ABOUT
@@ -137,6 +139,7 @@ void createAllButtons() {
     buttons[2].colorLine = Color(255, 0, 0);
     buttons[2].colorOnPressFill = Color(0, 255, 0);
     buttons[2].press = false;
+    buttons[2].prepForPress = false;
     buttons[2].str = "ABOUT";
 
     // SAVE
@@ -147,6 +150,7 @@ void createAllButtons() {
     buttons[3].colorLine = Color(255, 0, 0);
     buttons[3].colorOnPressFill = Color(0, 255, 0);
     buttons[3].press = false;
+    buttons[3].prepForPress = false;
     buttons[3].str = "SAVE";
 
     // LOAD
@@ -157,6 +161,7 @@ void createAllButtons() {
     buttons[4].colorLine = Color(255, 0, 0);
     buttons[4].colorOnPressFill = Color(0, 255, 0);
     buttons[4].press = false;
+    buttons[4].prepForPress = false;
     buttons[4].str = "LOAD";
 
     // UNDO
@@ -167,6 +172,7 @@ void createAllButtons() {
     buttons[5].colorLine = Color(255, 0, 0);
     buttons[5].colorOnPressFill = Color(0, 255, 0);
     buttons[5].press = false;
+    buttons[5].prepForPress = false;
     buttons[5].str = "UNDO";
 
     // REDO
@@ -177,6 +183,7 @@ void createAllButtons() {
     buttons[6].colorLine = Color(255, 0, 0);
     buttons[6].colorOnPressFill = Color(0, 255, 0);
     buttons[6].press = false;
+    buttons[6].prepForPress = false;
     buttons[6].str = "REDO";
 }
 
@@ -914,15 +921,21 @@ void buttonsMechanics(RenderWindow &window) {
     Vector2i positionMouse = Mouse::getPosition(window);
     for(int i = 0; i < (int)buttons.size(); i++) {
         if(buttons[i].mouseOnButton(positionMouse.x, positionMouse.y)) {
-            if(Mouse::isButtonPressed(Mouse::Left))
+            if(!buttons[i].prepForPress && !Mouse::isButtonPressed(Mouse::Left)) {
+                buttons[i].prepForPress = true;
+            }
+            else if(buttons[i].prepForPress && Mouse::isButtonPressed(Mouse::Left))
                 buttons[i].press = true;
             else if(buttons[i].press) {
+                buttons[i].prepForPress = false;
                 buttons[i].press = false;
                 activateButton(buttons[i]);
             }
         }
-        else
+        else {
+            buttons[i].prepForPress = false;
             buttons[i].press = false;
+        }
     }
 }
 
