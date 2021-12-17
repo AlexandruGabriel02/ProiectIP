@@ -17,6 +17,7 @@ float SCREEN_HEIGHT = 720;
 float MINSCR_WIDTH = 1158;
 float MINSCR_HEIGHT = 585;
 bool sizeScreen = false;
+bool diagramIprepForPress = false;
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
 #define MARGIN 75
@@ -993,40 +994,49 @@ void zoomMechanics() {
 void moveMechanics(int direction, RenderWindow &window) {
     Vector2i positionMouse = Mouse::getPosition(window);
     if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
-       originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
-        if(direction > 0) {
-            if(Mouse::isButtonPressed(Mouse::Left) && !moveScreen) {
-                moveScreen = true;
-                amoveP.x = positionMouse.x;
-                amoveP.y = positionMouse.y;
-            }
-            else if(!Mouse::isButtonPressed(Mouse::Left) && moveScreen) {
-                diagramP.x += moveP.x;
-                diagramP.y += moveP.y;
-                moveScreen = false;
-                amoveP = {0, 0};
-                moveP = {0, 0};
-            }
-        }
-        if(moveScreen) {
-            if(direction > 0)
-                moveP = {positionMouse.x-amoveP.x, positionMouse.y-amoveP.y};
-
-            diagramP.x += direction*moveP.x;
-            diagramP.y += direction*moveP.y;
-        }
-    }
-    else {
-        if(moveScreen) {
+       originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT && !Mouse::isButtonPressed(Mouse::Left))
+        diagramIprepForPress = true;
+    if(diagramIprepForPress) {
+        if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
+           originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
             if(direction > 0) {
+                if(Mouse::isButtonPressed(Mouse::Left) && !moveScreen) {
+                    moveScreen = true;
+                    amoveP.x = positionMouse.x;
+                    amoveP.y = positionMouse.y;
+                }
+                else if(!Mouse::isButtonPressed(Mouse::Left) && moveScreen) {
+                    diagramP.x += moveP.x;
+                    diagramP.y += moveP.y;
+                    moveScreen = false;
+                    diagramIprepForPress = false;
+                    amoveP = {0, 0};
+                    moveP = {0, 0};
+                }
+            }
+            if(moveScreen) {
+                if(direction > 0)
+                    moveP = {positionMouse.x-amoveP.x, positionMouse.y-amoveP.y};
+
                 diagramP.x += direction*moveP.x;
                 diagramP.y += direction*moveP.y;
             }
-            else {
-                moveScreen = false;
-                amoveP = {0, 0};
-                moveP = {0, 0};
+        }
+        else {
+            if(moveScreen) {
+                if(direction > 0) {
+                    diagramP.x += direction*moveP.x;
+                    diagramP.y += direction*moveP.y;
+                }
+                else {
+                    moveScreen = false;
+                    diagramIprepForPress = false;
+                    amoveP = {0, 0};
+                    moveP = {0, 0};
+                }
             }
+            else
+                diagramIprepForPress = false;
         }
     }
 }
