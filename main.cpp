@@ -8,7 +8,7 @@
 using namespace std;
 using namespace sf;
 
-ifstream fin("input.txt");
+ifstream fin;
 
 //#define SCREEN_WIDTH 1200
 //#define SCREEN_HEIGHT 900
@@ -18,10 +18,11 @@ float MINSCR_WIDTH = 1158;
 float MINSCR_HEIGHT = 585;
 bool sizeScreen = false;
 bool diagramIprepForPress = false;
+bool oneTimeResize = false;
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
 #define MARGIN 75
-#define NUMBER_OF_BUTTONS 7
+#define NUMBER_OF_BUTTONS 6
 #define BLOCK_BUTTON_WIDTH 100
 // interface look
 // D - diagram interface
@@ -42,12 +43,12 @@ float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
 #define CODE_MARGIN_HEIGHT MARGIN
 float CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
 float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
-
+string str_compiler_info;
 
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
-enum buttonType {RUN, SHOW, ABOUT, SAVE, LOAD, UNDO, REDO};
+enum buttonType {RUN, ABOUT, SAVE, LOAD, UNDO, REDO};
 string errorMessage[] =
 {
     "Instructiune invalida la linia ",
@@ -111,8 +112,8 @@ vector <Button> buttons(NUMBER_OF_BUTTONS);
 
 void createAllButtons() {
     // RUN
-    buttons[0].topLeft = {originICode.x+50, MARGIN/4};
-    buttons[0].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[0].topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
+    buttons[0].bottomRight = {originIDiagram.x+DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
     buttons[0].type = RUN;
     buttons[0].colorFill = Color(28, 28, 28);
     buttons[0].colorLine = Color(255, 0, 0);
@@ -121,71 +122,60 @@ void createAllButtons() {
     buttons[0].prepForPress = false;
     buttons[0].str = "RUN";
 
-    // SHOW
-    buttons[1].topLeft = {originICode.x+50, MARGIN/4+50};
-    buttons[1].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+50};
-    buttons[1].type = SHOW;
+    // ABOUT
+    buttons[1].topLeft = {originICode.x+50, MARGIN/4+100};
+    buttons[1].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+100};
+    buttons[1].type = ABOUT;
     buttons[1].colorFill = Color(28, 28, 28);
     buttons[1].colorLine = Color(255, 0, 0);
     buttons[1].colorOnPressFill = Color(0, 255, 0);
     buttons[1].press = false;
     buttons[1].prepForPress = false;
-    buttons[1].str = "SHOW";
+    buttons[1].str = "ABOUT";
 
-    // ABOUT
-    buttons[2].topLeft = {originICode.x+50, MARGIN/4+100};
-    buttons[2].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+100};
-    buttons[2].type = ABOUT;
+    // SAVE
+    buttons[2].topLeft = {originICode.x+50, MARGIN/4+150};
+    buttons[2].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+150};
+    buttons[2].type = SAVE;
     buttons[2].colorFill = Color(28, 28, 28);
     buttons[2].colorLine = Color(255, 0, 0);
     buttons[2].colorOnPressFill = Color(0, 255, 0);
     buttons[2].press = false;
     buttons[2].prepForPress = false;
-    buttons[2].str = "ABOUT";
+    buttons[2].str = "SAVE";
 
-    // SAVE
-    buttons[3].topLeft = {originICode.x+50, MARGIN/4+150};
-    buttons[3].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+150};
-    buttons[3].type = SAVE;
+    // LOAD
+    buttons[3].topLeft = {originICode.x+50, MARGIN/4+200};
+    buttons[3].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+200};
+    buttons[3].type = LOAD;
     buttons[3].colorFill = Color(28, 28, 28);
     buttons[3].colorLine = Color(255, 0, 0);
     buttons[3].colorOnPressFill = Color(0, 255, 0);
     buttons[3].press = false;
     buttons[3].prepForPress = false;
-    buttons[3].str = "SAVE";
+    buttons[3].str = "LOAD";
 
-    // LOAD
-    buttons[4].topLeft = {originICode.x+50, MARGIN/4+200};
-    buttons[4].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+200};
-    buttons[4].type = LOAD;
+    // UNDO
+    buttons[4].topLeft = {originICode.x+50, MARGIN/4+250};
+    buttons[4].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+250};
+    buttons[4].type = UNDO;
     buttons[4].colorFill = Color(28, 28, 28);
     buttons[4].colorLine = Color(255, 0, 0);
     buttons[4].colorOnPressFill = Color(0, 255, 0);
     buttons[4].press = false;
     buttons[4].prepForPress = false;
-    buttons[4].str = "LOAD";
+    buttons[4].str = "UNDO";
 
-    // UNDO
-    buttons[5].topLeft = {originICode.x+50, MARGIN/4+250};
-    buttons[5].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+250};
-    buttons[5].type = UNDO;
+    // REDO
+    buttons[5].topLeft = {originICode.x+50, MARGIN/4+300};
+    buttons[5].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+300};
+    buttons[5].type = REDO;
     buttons[5].colorFill = Color(28, 28, 28);
     buttons[5].colorLine = Color(255, 0, 0);
     buttons[5].colorOnPressFill = Color(0, 255, 0);
     buttons[5].press = false;
     buttons[5].prepForPress = false;
-    buttons[5].str = "UNDO";
-
-    // REDO
-    buttons[6].topLeft = {originICode.x+50, MARGIN/4+300};
-    buttons[6].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+300};
-    buttons[6].type = REDO;
-    buttons[6].colorFill = Color(28, 28, 28);
-    buttons[6].colorLine = Color(255, 0, 0);
-    buttons[6].colorOnPressFill = Color(0, 255, 0);
-    buttons[6].press = false;
-    buttons[6].prepForPress = false;
-    buttons[6].str = "REDO";
+    buttons[5].str = "REDO";
 }
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
@@ -235,7 +225,7 @@ void clearTree(node* &currentNode)
 // initializarea arborelui
 void initTree()
 {
-    //clearTree();
+    clearTree(Tree);
     Tree = new node;
     Tree -> instruction = EMPTY_NODE;
 
@@ -279,6 +269,25 @@ vector<string> splitIntoWords(string str)
     return result;
 }
 
+// int to string
+//
+string intToString(int value) {
+    string str = "";
+    if(value == 0)
+        str = "0";
+    int p = 1, auxValue = value;
+    while(auxValue) {
+        p *= 10;
+        auxValue /= 10;
+    }
+    p /= 10;
+    while(p) {
+        str += (char)((value/p)%10+'0');
+        p /= 10;
+    }
+    return str;
+}
+
 // optine instruction type
 instructionType getInstructionType(vector<string> vStr)
 {
@@ -308,9 +317,10 @@ instructionType getInstructionType(vector<string> vStr)
 }
 
 // construirea arborelui
+int lineCount = 0;
 void buildTree(node* &currentNode)
 {
-    static int lineCount = 0; ///linia de cod la care ma aflu
+    //static int lineCount = 0; ///linia de cod la care ma aflu
     if (currentNode -> instruction == EMPTY_NODE)
     {
         bool exitWhile = false;
@@ -657,16 +667,14 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
 
 //buildDiagram_DFS is not working if i rerun the function with anothers variables for Tree -> x, y, length, height
 //i created a function that can clear the position
-void deletePositionDiagram_DFS(node* currentNode)
-{
-    if (currentNode != NULL)
-    {
+void deletePositionDiagram_DFS(node* currentNode) {
+    if(currentNode != NULL) {
         currentNode -> x = 0;
         currentNode -> y = 0;
         currentNode -> length = 0;
         currentNode -> height = 0;
 
-        for (node* nextNode : currentNode -> next)
+        for(node* nextNode:currentNode -> next)
             deletePositionDiagram_DFS(nextNode);
     }
 }
@@ -789,6 +797,7 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 
 // events
 void pollEvents(RenderWindow &window) {
+    bool resizedEvent = false;
     Event event;
     while(window.pollEvent(event)) {
         if(event.type == Event::Closed)
@@ -818,12 +827,18 @@ void pollEvents(RenderWindow &window) {
             }
         }
 
-        // rezise
-        View view = window.getView();
-        if((abs(window.getSize().x-SCREEN_WIDTH) > 1 || abs(window.getSize().y-SCREEN_HEIGHT) > 1) && event.type != Event::Resized && !sizeScreen) {
-            sizeScreen = true;
-        }
+        // resize
+        if(event.type == Event::Resized)
+            resizedEvent = true;
     }
+    if(resizedEvent)
+        oneTimeResize = false;
+    if(sizeScreen) {
+        oneTimeResize = true;
+        sizeScreen = false;
+    }
+    if(!oneTimeResize && !resizedEvent && !Mouse::isButtonPressed(Mouse::Left))
+        sizeScreen = true;
 }
 
 // desenarea margenilor
@@ -863,6 +878,12 @@ void interfaceDraw(RenderWindow &window) {
     colorFill = Color(0, 0, 0, 0);
     colorLine = Color(255, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+    // border compiler
+    topLeft = {originIDiagram.x, SCREEN_HEIGHT-(MARGIN/4)*3};
+    bottomRight = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    colorFill = Color(0, 0, 0, 0);
+    colorLine = Color(255, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
 // background color for diagramCut
@@ -883,16 +904,46 @@ void backgroundCodeDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
+// background color for compilerCut
+void backgroundCompilerDraw(RenderWindow &window) {
+    Point topLeft = {originIDiagram.x, SCREEN_HEIGHT-(MARGIN/4)*3};
+    Point bottomRight = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    Color colorFill = Color(14, 10, 10);
+    Color colorLine = Color(0, 0, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+}
+
 // parte din mecanismul pentru butoane
 void activateButton(Button button) {
     if(button.type == RUN) {
         cout << "you pressed RUN\n";
-        // make the diagram and print
-        // bonus: compile
-    }
-    else if(button.type == SHOW) {
-        cout << "you pressed SHOW\n";
-        // show another buttons
+        validTree = true;
+        lineCount = 0;
+        initTree();
+
+        fin.open("input.txt");
+        buildTree(Tree);
+        fin.close();
+
+        checkErrors_DFS(Tree);
+
+        if(validTree) {
+            buildDP_DFS(Tree);
+            buildDiagram_DFS(Tree, Tree);
+            str_compiler_info = "Ok";
+          //  TreeDFS(Tree, 0); ///afisez arborele
+          //  clearTree(Tree);
+
+          //  cout << "stergere reusita\n";
+
+          //  TreeDFS(Tree, 0);
+        }
+        else {
+            str_compiler_info = errorMessage[error.first]+intToString(error.second);
+            cout << "input invalid\n";
+            cout << errorMessage[error.first] << error.second << "\n";
+
+        }
     }
     else if(button.type == ABOUT) {
         cout << "you pressed ABOUT\n";
@@ -949,7 +1000,7 @@ void resizeMechanics(RenderWindow &window) {
         correctWidth = false;
     if(window.getSize().y < MINSCR_HEIGHT)
         correctHeight = false;
-    if((abs(window.getSize().x-SCREEN_WIDTH) > 1 || abs(window.getSize().y-SCREEN_HEIGHT) > 1) && (sizeScreen || (correctWidth && correctHeight))) {
+    if(!oneTimeResize && (sizeScreen || (correctWidth && correctHeight))) {
         if(!correctWidth && !correctHeight) {
             window.setSize(Vector2u(MINSCR_WIDTH, MINSCR_HEIGHT));
             sizeScreen = false;
@@ -972,8 +1023,9 @@ void resizeMechanics(RenderWindow &window) {
         DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
         CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
         CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
-        if((int)SCREEN_HEIGHT%2 == 1)
-            SCREEN_HEIGHT += 1;
+        //if((int)SCREEN_HEIGHT%2 == 1)
+        //    SCREEN_HEIGHT += 1;
+        createAllButtons();
         view.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         view.setCenter(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
     }
@@ -1054,37 +1106,50 @@ void updateWindow(RenderWindow &window)
 
     interfaceDraw(window);
 
+    // afisarea rezultatului sau syntax error
+    backgroundCompilerDraw(window);
+
     // afisare butoane
     for(Button button:buttons)
         button.draw(window, font);
+
+    // afisare compiler info
+    Box box;
+    box.x = originIDiagram.x;
+    box.y = SCREEN_HEIGHT-(MARGIN/4)*3;
+    box.length = DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH;
+    box.height = SCREEN_HEIGHT-MARGIN/4-box.y;
+    if(str_compiler_info == "")
+        window.draw(createText(box, " ", font));
+    else
+        window.draw(createText(box, str_compiler_info, font));
+
     window.display();
 }
 
-void Debugger()
-{
-    createAllButtons();
-    initTree();
-    buildTree(Tree);
-    checkErrors_DFS(Tree);
-
-    if (validTree)
-    {
-        buildDP_DFS(Tree);
-        buildDiagram_DFS(Tree, Tree);
-      //  TreeDFS(Tree, 0); ///afisez arborele
-      //  clearTree(Tree);
-
-      //  cout << "stergere reusita\n";
-
-      //  TreeDFS(Tree, 0);
-    }
-    else
-    {
-        cout << "input invalid\n";
-        cout << errorMessage[error.first] << error.second << "\n";
-    }
-}
-
+//void Debugger()
+//{
+//    initTree();
+//    buildTree(Tree);
+//    checkErrors_DFS(Tree);
+//
+//    if (validTree)
+//    {
+//        buildDP_DFS(Tree);
+//        buildDiagram_DFS(Tree, Tree);
+//      //  TreeDFS(Tree, 0); ///afisez arborele
+//      //  clearTree(Tree);
+//
+//      //  cout << "stergere reusita\n";
+//
+//      //  TreeDFS(Tree, 0);
+//    }
+//    else
+//    {
+//        cout << "input invalid\n";
+//        cout << errorMessage[error.first] << error.second << "\n";
+//    }
+//}
 
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
@@ -1094,18 +1159,22 @@ int main() {
         cout << "Not found file";
         exit(0);
     }
+    createAllButtons();
 
-    Debugger();
+    //Debugger();
 
     while(window.isOpen()) {
         pollEvents(window);
         buttonsMechanics(window);
         resizeMechanics(window);
-        moveMechanics(1, window);
-        zoomMechanics();
+        if(Tree != NULL && validTree) {
+            moveMechanics(1, window);
+            zoomMechanics();
+        }
         updateWindow(window);
-        moveMechanics(-1, window);
-        sizeScreen = false;
+        if(Tree != NULL && validTree) {
+            moveMechanics(-1, window);
+        }
     }
     fin.close();
 
