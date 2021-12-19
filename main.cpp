@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <set>
+#include <unordered_map>
 //#include "diagrams.h"
 #include "diagrams.cpp"
 
@@ -108,74 +109,76 @@ struct Button {
 };
 
 // butoanele
-vector <Button> buttons(NUMBER_OF_BUTTONS);
+//vector <Button> buttons(NUMBER_OF_BUTTONS);
+unordered_map <buttonType, Button> buttons;
+
 
 void createAllButtons() {
     // RUN
-    buttons[0].topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
-    buttons[0].bottomRight = {originIDiagram.x+DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
-    buttons[0].type = RUN;
-    buttons[0].colorFill = Color(28, 28, 28);
-    buttons[0].colorLine = Color(255, 0, 0);
-    buttons[0].colorOnPressFill = Color(0, 255, 0);
-    buttons[0].press = false;
-    buttons[0].prepForPress = false;
-    buttons[0].str = "RUN";
+    buttons[RUN].topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
+    buttons[RUN].bottomRight = {originIDiagram.x+DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    buttons[RUN].type = RUN;
+    buttons[RUN].colorFill = Color(28, 28, 28);
+    buttons[RUN].colorLine = Color(255, 0, 0);
+    buttons[RUN].colorOnPressFill = Color(0, 255, 0);
+    buttons[RUN].press = false;
+    buttons[RUN].prepForPress = false;
+    buttons[RUN].str = "RUN";
 
     // ABOUT
-    buttons[1].topLeft = {originICode.x+50, MARGIN/4+100};
-    buttons[1].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+100};
-    buttons[1].type = ABOUT;
-    buttons[1].colorFill = Color(28, 28, 28);
-    buttons[1].colorLine = Color(255, 0, 0);
-    buttons[1].colorOnPressFill = Color(0, 255, 0);
-    buttons[1].press = false;
-    buttons[1].prepForPress = false;
-    buttons[1].str = "ABOUT";
+    buttons[ABOUT].topLeft = {originICode.x+50, MARGIN/4+100};
+    buttons[ABOUT].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+100};
+    buttons[ABOUT].type = ABOUT;
+    buttons[ABOUT].colorFill = Color(28, 28, 28);
+    buttons[ABOUT].colorLine = Color(255, 0, 0);
+    buttons[ABOUT].colorOnPressFill = Color(0, 255, 0);
+    buttons[ABOUT].press = false;
+    buttons[ABOUT].prepForPress = false;
+    buttons[ABOUT].str = "ABOUT";
 
     // SAVE
-    buttons[2].topLeft = {originICode.x+50, MARGIN/4+150};
-    buttons[2].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+150};
-    buttons[2].type = SAVE;
-    buttons[2].colorFill = Color(28, 28, 28);
-    buttons[2].colorLine = Color(255, 0, 0);
-    buttons[2].colorOnPressFill = Color(0, 255, 0);
-    buttons[2].press = false;
-    buttons[2].prepForPress = false;
-    buttons[2].str = "SAVE";
+    buttons[SAVE].topLeft = {originICode.x+50, MARGIN/4+150};
+    buttons[SAVE].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+150};
+    buttons[SAVE].type = SAVE;
+    buttons[SAVE].colorFill = Color(28, 28, 28);
+    buttons[SAVE].colorLine = Color(255, 0, 0);
+    buttons[SAVE].colorOnPressFill = Color(0, 255, 0);
+    buttons[SAVE].press = false;
+    buttons[SAVE].prepForPress = false;
+    buttons[SAVE].str = "SAVE";
 
     // LOAD
-    buttons[3].topLeft = {originICode.x+50, MARGIN/4+200};
-    buttons[3].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+200};
-    buttons[3].type = LOAD;
-    buttons[3].colorFill = Color(28, 28, 28);
-    buttons[3].colorLine = Color(255, 0, 0);
-    buttons[3].colorOnPressFill = Color(0, 255, 0);
-    buttons[3].press = false;
-    buttons[3].prepForPress = false;
-    buttons[3].str = "LOAD";
+    buttons[LOAD].topLeft = {originICode.x+50, MARGIN/4+200};
+    buttons[LOAD].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+200};
+    buttons[LOAD].type = LOAD;
+    buttons[LOAD].colorFill = Color(28, 28, 28);
+    buttons[LOAD].colorLine = Color(255, 0, 0);
+    buttons[LOAD].colorOnPressFill = Color(0, 255, 0);
+    buttons[LOAD].press = false;
+    buttons[LOAD].prepForPress = false;
+    buttons[LOAD].str = "LOAD";
 
     // UNDO
-    buttons[4].topLeft = {originICode.x+50, MARGIN/4+250};
-    buttons[4].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+250};
-    buttons[4].type = UNDO;
-    buttons[4].colorFill = Color(28, 28, 28);
-    buttons[4].colorLine = Color(255, 0, 0);
-    buttons[4].colorOnPressFill = Color(0, 255, 0);
-    buttons[4].press = false;
-    buttons[4].prepForPress = false;
-    buttons[4].str = "UNDO";
+    buttons[UNDO].topLeft = {originICode.x+50, MARGIN/4+250};
+    buttons[UNDO].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+250};
+    buttons[UNDO].type = UNDO;
+    buttons[UNDO].colorFill = Color(28, 28, 28);
+    buttons[UNDO].colorLine = Color(255, 0, 0);
+    buttons[UNDO].colorOnPressFill = Color(0, 255, 0);
+    buttons[UNDO].press = false;
+    buttons[UNDO].prepForPress = false;
+    buttons[UNDO].str = "UNDO";
 
     // REDO
-    buttons[5].topLeft = {originICode.x+50, MARGIN/4+300};
-    buttons[5].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+300};
-    buttons[5].type = REDO;
-    buttons[5].colorFill = Color(28, 28, 28);
-    buttons[5].colorLine = Color(255, 0, 0);
-    buttons[5].colorOnPressFill = Color(0, 255, 0);
-    buttons[5].press = false;
-    buttons[5].prepForPress = false;
-    buttons[5].str = "REDO";
+    buttons[REDO].topLeft = {originICode.x+50, MARGIN/4+300};
+    buttons[REDO].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+300};
+    buttons[REDO].type = REDO;
+    buttons[REDO].colorFill = Color(28, 28, 28);
+    buttons[REDO].colorLine = Color(255, 0, 0);
+    buttons[REDO].colorOnPressFill = Color(0, 255, 0);
+    buttons[REDO].press = false;
+    buttons[REDO].prepForPress = false;
+    buttons[REDO].str = "REDO";
 }
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
@@ -970,22 +973,22 @@ void activateButton(Button button) {
 // mecanismul pentru butoane
 void buttonsMechanics(RenderWindow &window) {
     Vector2i positionMouse = Mouse::getPosition(window);
-    for(int i = 0; i < (int)buttons.size(); i++) {
-        if(buttons[i].mouseOnButton(positionMouse.x, positionMouse.y)) {
-            if(!buttons[i].prepForPress && !Mouse::isButtonPressed(Mouse::Left)) {
-                buttons[i].prepForPress = true;
+    for(auto& it: buttons) {
+        if(it.second.mouseOnButton(positionMouse.x, positionMouse.y)) {
+            if(!it.second.prepForPress && !Mouse::isButtonPressed(Mouse::Left)) {
+                it.second.prepForPress = true;
             }
-            else if(buttons[i].prepForPress && Mouse::isButtonPressed(Mouse::Left))
-                buttons[i].press = true;
-            else if(buttons[i].press) {
-                buttons[i].prepForPress = false;
-                buttons[i].press = false;
-                activateButton(buttons[i]);
+            else if(it.second.prepForPress && Mouse::isButtonPressed(Mouse::Left))
+                it.second.press = true;
+            else if(it.second.press) {
+                it.second.prepForPress = false;
+                it.second.press = false;
+                activateButton(it.second);
             }
         }
         else {
-            buttons[i].prepForPress = false;
-            buttons[i].press = false;
+            it.second.prepForPress = false;
+            it.second.press = false;
         }
     }
 }
@@ -1109,8 +1112,8 @@ void updateWindow(RenderWindow &window)
     backgroundCompilerDraw(window);
 
     // afisare butoane
-    for(Button button:buttons)
-        button.draw(window, font);
+    for(auto& it: buttons)
+        it.second.draw(window, font);
 
     // afisare compiler info
     Box box;
