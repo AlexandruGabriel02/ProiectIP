@@ -270,7 +270,6 @@ vector<string> splitIntoWords(string str)
 }
 
 // int to string
-//
 string intToString(int value) {
     string str = "";
     if(value == 0)
@@ -1176,7 +1175,5 @@ int main() {
             moveMechanics(-1, window);
         }
     }
-    fin.close();
-
     return 0;
 }
