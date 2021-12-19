@@ -795,51 +795,6 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
     }
 }
 
-// events
-void pollEvents(RenderWindow &window) {
-    bool resizedEvent = false;
-    Event event;
-    while(window.pollEvent(event)) {
-        if(event.type == Event::Closed)
-            window.close();
-
-        // exit
-        if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::Escape)
-                window.close();
-        }
-        Vector2i positionMouse = Mouse::getPosition(window);
-        if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
-           originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
-            if(event.type == Event::MouseWheelMoved) {
-                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
-                    zoom -= zoomScale;
-                else if(event.mouseWheel.delta == 1)
-                    zoom += zoomScale;
-            }
-        }
-
-        // pozitia initiala si zoom ul initial
-        if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::O) {
-                diagramP = originDiagramP;
-                zoom = 1;
-            }
-        }
-
-        // resize
-        if(event.type == Event::Resized)
-            resizedEvent = true;
-    }
-    if(resizedEvent)
-        oneTimeResize = false;
-    if(sizeScreen) {
-        oneTimeResize = true;
-        sizeScreen = false;
-    }
-    if(!oneTimeResize && !resizedEvent && !Mouse::isButtonPressed(Mouse::Left))
-        sizeScreen = true;
-}
 
 // desenarea margenilor
 void interfaceDraw(RenderWindow &window) {
@@ -1091,6 +1046,59 @@ void moveMechanics(int direction, RenderWindow &window) {
                 diagramIprepForPress = false;
         }
     }
+}
+
+// events
+void pollEvents(RenderWindow &window) {
+    bool resizedEvent = false;
+    Event event;
+    while(window.pollEvent(event)) {
+        if(event.type == Event::Closed)
+            window.close();
+
+        // exit
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::Escape)
+                window.close();
+        }
+        Vector2i positionMouse = Mouse::getPosition(window);
+        if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
+           originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
+            if(event.type == Event::MouseWheelMoved) {
+                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
+                    zoom -= zoomScale;
+                else if(event.mouseWheel.delta == 1)
+                    zoom += zoomScale;
+            }
+        }
+
+        // RUN button action on keyboard
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::R) {
+                activateButton(buttons[RUN]);
+            }
+        }
+
+        // pozitia initiala si zoom ul initial
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::O) {
+                diagramP = originDiagramP;
+                zoom = 1;
+            }
+        }
+
+        // resize
+        if(event.type == Event::Resized)
+            resizedEvent = true;
+    }
+    if(resizedEvent)
+        oneTimeResize = false;
+    if(sizeScreen) {
+        oneTimeResize = true;
+        sizeScreen = false;
+    }
+    if(!oneTimeResize && !resizedEvent && !Mouse::isButtonPressed(Mouse::Left))
+        sizeScreen = true;
 }
 
 // actualizarea ferestrei
