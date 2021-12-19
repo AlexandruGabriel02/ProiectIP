@@ -23,7 +23,6 @@ bool oneTimeResize = false;
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
 #define MARGIN 75
-#define NUMBER_OF_BUTTONS 6
 #define BLOCK_BUTTON_WIDTH 100
 // interface look
 // D - diagram interface
@@ -109,7 +108,6 @@ struct Button {
 };
 
 // butoanele
-//vector <Button> buttons(NUMBER_OF_BUTTONS);
 unordered_map <buttonType, Button> buttons;
 
 
