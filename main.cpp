@@ -1210,6 +1210,7 @@ void updateWindow(RenderWindow &window)
 
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
+    window.setFramerateLimit(60);
 
 
     if(!font.loadFromFile("./font.ttf")) {
