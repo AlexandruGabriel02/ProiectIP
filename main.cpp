@@ -1074,7 +1074,7 @@ void pollEvents(RenderWindow &window) {
 
         // RUN button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::R && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::C && Keyboard::isKeyPressed(Keyboard::LControl)) {
                 activateButton(buttons[RUN]);
             }
         }
@@ -1098,7 +1098,7 @@ void pollEvents(RenderWindow &window) {
         }
         // REDO button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::Y && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::R && Keyboard::isKeyPressed(Keyboard::LControl)) {
                 activateButton(buttons[REDO]);
             }
         }
