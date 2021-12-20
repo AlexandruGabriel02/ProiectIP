@@ -1202,6 +1202,25 @@ void pollEvents(RenderWindow &window) {
             }
         }
 
+        if(event.type == sf::Event::TextEntered) {
+            if(32 <= event.text.unicode && event.text.unicode <= 126) {
+                vector <char>::iterator it;
+                it = codeEdit[cursorCP.y].begin();
+                codeEdit[cursorCP.y].insert(it+cursorCP.x, static_cast<char>(event.text.unicode));
+                cursorCP.x += 1;
+            }
+            else if(event.text.unicode == 13) { // enter
+                vector <vector<char>>::iterator it;
+                it = codeEdit.begin();
+                codeEdit.insert(it+cursorCP.y+1, vector<char>());
+                cursorCP.x = 0;
+                cursorCP.y += 1;
+            }
+            else if(event.text.unicode == 8) { //backspace
+                // i need to work at that
+            }
+        }
+
         // resize
         if(event.type == Event::Resized)
             resizedEvent = true;
@@ -1293,6 +1312,7 @@ int main() {
         exit(0);
     }
     createAllButtons();
+    codeEdit.push_back(vector<char>());
 
     //Debugger();
 
