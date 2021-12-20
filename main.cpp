@@ -1058,7 +1058,7 @@ void pollEvents(RenderWindow &window) {
 
         // exit
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::Escape)
+            if(event.key.code == Keyboard::Q && Keyboard::isKeyPressed(Keyboard::LControl))
                 window.close();
         }
         Vector2i positionMouse = Mouse::getPosition(window);
@@ -1074,14 +1074,14 @@ void pollEvents(RenderWindow &window) {
 
         // RUN button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::R) {
+            if(event.key.code == Keyboard::R && Keyboard::isKeyPressed(Keyboard::LControl)) {
                 activateButton(buttons[RUN]);
             }
         }
 
         // pozitia initiala si zoom ul initial
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::O) {
+            if(event.key.code == Keyboard::O && Keyboard::isKeyPressed(Keyboard::LControl)) {
                 diagramP = originDiagramP;
                 zoom = 1;
             }
