@@ -1078,6 +1078,30 @@ void pollEvents(RenderWindow &window) {
                 activateButton(buttons[RUN]);
             }
         }
+        // SAVE button action on keyboard
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::S && Keyboard::isKeyPressed(Keyboard::LControl)) {
+                activateButton(buttons[SAVE]);
+            }
+        }
+        // LOAD button action on keyboard
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::L && Keyboard::isKeyPressed(Keyboard::LControl)) {
+                activateButton(buttons[LOAD]);
+            }
+        }
+        // UNDO button action on keyboard
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::U && Keyboard::isKeyPressed(Keyboard::LControl)) {
+                activateButton(buttons[UNDO]);
+            }
+        }
+        // REDO button action on keyboard
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::Y && Keyboard::isKeyPressed(Keyboard::LControl)) {
+                activateButton(buttons[REDO]);
+            }
+        }
 
         // pozitia initiala si zoom ul initial
         if(event.type == Event::KeyPressed) {
