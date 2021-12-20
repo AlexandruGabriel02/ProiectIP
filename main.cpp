@@ -11,6 +11,7 @@ using namespace sf;
 
 ifstream fin;
 
+#define FILENAME "input.txt"
 //#define SCREEN_WIDTH 1200
 //#define SCREEN_HEIGHT 900
 float SCREEN_WIDTH = 1280;
@@ -44,6 +45,8 @@ float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
 float CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
 float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
 string str_compiler_info;
+#define BLOCK_CODE_WIDTH 20
+#define BLOCK_CODE_HEIGHT 20
 
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
@@ -71,8 +74,7 @@ Point diagramP = originDiagramP;
 Point originICode = {CODE_MARGIN_WIDTH, CODE_MARGIN_HEIGHT};
 
 // pozitia initiala a codului
-Point originCodeP = {originICode.x, originICode.y+50};
-Point codeP = originCodeP;
+Point codeP = originICode;
 
 // variabilele pentru zoom
 float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.75;
@@ -110,6 +112,9 @@ struct Button {
 // butoanele
 unordered_map <buttonType, Button> buttons;
 
+// code
+Point cursorCP = {0, 0};
+vector <vector <char>> codeEdit;
 
 void createAllButtons() {
     // RUN
@@ -286,6 +291,26 @@ string intToString(int value) {
         p /= 10;
     }
     return str;
+}
+
+// clear vector<vector<char>>
+void clearCodeMemory() {
+    for(int i = 0; i < (int)codeEdit.size(); i++)
+        codeEdit[i].clear();
+    codeEdit.clear();
+}
+
+// filename to vector<vector<char>>
+void getDataFromFile() {
+    clearCodeMemory();
+    fin.open(FILENAME);
+    while(!fin.eof()) {
+        string str = readLineFromFile();
+        codeEdit.push_back(vector<char>());
+        for(int i = 0 ; i < (int)str.size(); i++)
+            codeEdit[codeEdit.size()-1].push_back(str[i]);
+    }
+    fin.close();
 }
 
 // optine instruction type
@@ -876,7 +901,7 @@ void activateButton(Button button) {
         lineCount = 0;
         initTree();
 
-        fin.open("input.txt");
+        fin.open(FILENAME);
         buildTree(Tree);
         fin.close();
 
