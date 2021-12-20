@@ -26,6 +26,27 @@ Text createText(Box box, string str, Font &font) {
     return text;
 }
 
+Text createTextForCode(Box box, string str, Font &font) {
+    Text text;
+    text.setFont(font);
+    if('A' <= str && str <= 'Z')
+        text.setString('A');
+    if('a' <= str && str <= 'z')
+        text.setString('a');
+    text.setCharacterSize(20);
+    text.setLetterSpacing(0.5);
+    float xheight = text.getLocalBounds().height;
+    text.setString(str);
+    if(str == 'g' || str == 'p' || str == 'q' || str == 'Q' || str == 'y')
+        text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-xheight);
+    else if(str == 'j')
+        text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-xheight-(text.getLocalBounds().height-xheight)/2+0.5);
+    else
+        text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-text.getLocalBounds().height);
+    text.setOrigin(text.getLocalBounds().left, text.getLocalBounds().top);
+    return text;
+}
+
 CircleShape createCircle(Point middle, float r, Color colorFill, Color colorLine, Font &font) {
     CircleShape circle(r);
     circle.setPosition(middle.x-r, middle.y-r);

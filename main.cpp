@@ -10,8 +10,10 @@ using namespace std;
 using namespace sf;
 
 ifstream fin;
+ofstream fout;
 
 #define FILENAME "input.txt"
+#define TEMPFILE "tempaWFtaGVyZTMK.txt"
 //#define SCREEN_WIDTH 1200
 //#define SCREEN_HEIGHT 900
 float SCREEN_WIDTH = 1280;
@@ -45,8 +47,12 @@ float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
 float CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
 float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
 string str_compiler_info;
-#define BLOCK_CODE_WIDTH 20
+#define BLOCK_CODE_WIDTH 16
 #define BLOCK_CODE_HEIGHT 20
+#define CODEEDIT_MARGIN_WIDTH 20
+#define CODEEDIT_MARGIN_HEIGHT 20
+int LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
+int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
@@ -140,8 +146,8 @@ void createAllButtons() {
     buttons[ABOUT].str = "ABOUT";
 
     // SAVE
-    buttons[SAVE].topLeft = {originICode.x+50, MARGIN/4+150};
-    buttons[SAVE].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+150};
+    buttons[SAVE].topLeft = {originICode.x+50, MARGIN/4};
+    buttons[SAVE].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[SAVE].type = SAVE;
     buttons[SAVE].colorFill = Color(28, 28, 28);
     buttons[SAVE].colorLine = Color(255, 0, 0);
@@ -151,8 +157,8 @@ void createAllButtons() {
     buttons[SAVE].str = "SAVE";
 
     // LOAD
-    buttons[LOAD].topLeft = {originICode.x+50, MARGIN/4+200};
-    buttons[LOAD].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+200};
+    buttons[LOAD].topLeft = {originICode.x+buttons[SAVE].bottomRight.x-buttons[SAVE].topLeft.x+100, MARGIN/4};
+    buttons[LOAD].bottomRight = {originICode.x+buttons[SAVE].bottomRight.x-buttons[SAVE].topLeft.x+100+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[LOAD].type = LOAD;
     buttons[LOAD].colorFill = Color(28, 28, 28);
     buttons[LOAD].colorLine = Color(255, 0, 0);
@@ -301,9 +307,9 @@ void clearCodeMemory() {
 }
 
 // filename to vector<vector<char>>
-void getDataFromFile() {
+void getDataFromFile(string filename) {
     clearCodeMemory();
-    fin.open(FILENAME);
+    fin.open(filename);
     while(!fin.eof()) {
         string str = readLineFromFile();
         codeEdit.push_back(vector<char>());
@@ -311,6 +317,19 @@ void getDataFromFile() {
             codeEdit[codeEdit.size()-1].push_back(str[i]);
     }
     fin.close();
+}
+
+// vector<vector<char>> to filename
+void setDataToFile(string filename) {
+    fout.open(filename);
+    for(int line = 0; line < (int)codeEdit.size(); line++) {
+        for(int column = 0; column < (int)codeEdit[line].size(); column++) {
+            fout << codeEdit[line][column];
+        }
+        if(line != (int)codeEdit.size()-1)
+            fout << '\n';
+    }
+    fout.close();
 }
 
 // optine instruction type
@@ -820,6 +839,30 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
     }
 }
 
+// desenarea codului
+void printCodeEdit(RenderWindow &window) {
+    Box box;
+    string str;
+    int k = 10, nr = 1;
+    for(int line = 0; line < (int)codeEdit.size() && line < LIMIT_LINE_CODE; line++) {
+        box.x = originICode.x+CODEEDIT_MARGIN_HEIGHT-(nr-1)*BLOCK_CODE_WIDTH;
+        box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_WIDTH;
+        box.length = nr*BLOCK_CODE_WIDTH;
+        box.height = BLOCK_CODE_HEIGHT;
+        str = intToString(line+1);
+        window.draw(createTextForCode(box, str, font));
+        if(line == k-2)
+            k *= 10, nr++;
+        for(int column = 0; column < (int)codeEdit[line].size() && column < LIMIT_COLUMN_CODE; column++) {
+            box.x = originICode.x+(column+1)*BLOCK_CODE_WIDTH+CODEEDIT_MARGIN_HEIGHT;
+            box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_WIDTH;
+            box.length = BLOCK_CODE_WIDTH;
+            box.height = BLOCK_CODE_HEIGHT;
+            str = codeEdit[line][column];
+            window.draw(createTextForCode(box, str, font));
+        }
+    }
+}
 
 // desenarea margenilor
 void interfaceDraw(RenderWindow &window) {
@@ -893,6 +936,14 @@ void backgroundCompilerDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
+// line draw
+void lineDraw(Point startP, Point stopP, RenderWindow &window) {
+    VertexArray line(LineStrip, 2);
+    line[0].position = Vector2f(startP.x, startP.y);
+    line[1].position = Vector2f(stopP.x, stopP.y);
+    window.draw(line);
+}
+
 // parte din mecanismul pentru butoane
 void activateButton(Button button) {
     if(button.type == RUN) {
@@ -901,9 +952,11 @@ void activateButton(Button button) {
         lineCount = 0;
         initTree();
 
-        fin.open(FILENAME);
+        setDataToFile(TEMPFILE);
+        fin.open(TEMPFILE);
         buildTree(Tree);
         fin.close();
+        remove(TEMPFILE);
 
         checkErrors_DFS(Tree);
 
@@ -931,11 +984,11 @@ void activateButton(Button button) {
     }
     else if(button.type == SAVE) {
         cout << "you pressed SAVE\n";
-        // save the code from editor to file
+        setDataToFile(FILENAME);
     }
     else if(button.type == LOAD) {
         cout << "you pressed LOAD\n";
-        // load the code from a file to editor
+        getDataFromFile(FILENAME);
     }
     else if(button.type == UNDO) {
         cout << "you pressed UNDO\n";
@@ -1003,6 +1056,8 @@ void resizeMechanics(RenderWindow &window) {
         DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
         CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
         CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
+        LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
+        LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
         //if((int)SCREEN_HEIGHT%2 == 1)
         //    SCREEN_HEIGHT += 1;
         createAllButtons();
@@ -1156,10 +1211,16 @@ void updateWindow(RenderWindow &window)
     window.clear();
 
     backgroundDiagramDraw(window);
-    printDiagram_DFS(Tree, window);
+    if(Tree != NULL && validTree)
+        printDiagram_DFS(Tree, window);
     backgroundCodeDraw(window);
 
-    // aici o sa fie desenarea codului (o fac eu)
+    // afisarea codului
+    printCodeEdit(window);
+    
+    // draw a line
+    lineDraw({originICode.x+CODEEDIT_MARGIN_WIDTH+BLOCK_CODE_WIDTH, originICode.y+CODEEDIT_MARGIN_HEIGHT}, \
+             {originICode.x+CODEEDIT_MARGIN_WIDTH+BLOCK_CODE_WIDTH, originICode.y+CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT}, window);
 
     interfaceDraw(window);
 
@@ -1210,7 +1271,7 @@ void updateWindow(RenderWindow &window)
 
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(90);
 
 
     if(!font.loadFromFile("./font.ttf")) {
