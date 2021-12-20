@@ -57,7 +57,7 @@ int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
-enum buttonType {RUN, ABOUT, SAVE, LOAD, UNDO, REDO};
+enum buttonType {RUN, ABOUT, SAVE, LOAD};
 string errorMessage[] =
 {
     "Instructiune invalida la linia ",
@@ -167,27 +167,6 @@ void createAllButtons() {
     buttons[LOAD].prepForPress = false;
     buttons[LOAD].str = "LOAD";
 
-    // UNDO
-    buttons[UNDO].topLeft = {originICode.x+50, MARGIN/4+250};
-    buttons[UNDO].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+250};
-    buttons[UNDO].type = UNDO;
-    buttons[UNDO].colorFill = Color(28, 28, 28);
-    buttons[UNDO].colorLine = Color(255, 0, 0);
-    buttons[UNDO].colorOnPressFill = Color(0, 255, 0);
-    buttons[UNDO].press = false;
-    buttons[UNDO].prepForPress = false;
-    buttons[UNDO].str = "UNDO";
-
-    // REDO
-    buttons[REDO].topLeft = {originICode.x+50, MARGIN/4+300};
-    buttons[REDO].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+300};
-    buttons[REDO].type = REDO;
-    buttons[REDO].colorFill = Color(28, 28, 28);
-    buttons[REDO].colorLine = Color(255, 0, 0);
-    buttons[REDO].colorOnPressFill = Color(0, 255, 0);
-    buttons[REDO].press = false;
-    buttons[REDO].prepForPress = false;
-    buttons[REDO].str = "REDO";
 }
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
@@ -1025,15 +1004,6 @@ void activateButton(Button button) {
         cursorCP = {0, 0};
         codeEdit.push_back(vector<char>());
     }
-    else if(button.type == UNDO) {
-        cout << "you pressed UNDO\n";
-        // undo the writing in the editor
-    }
-    else if(button.type == REDO) {
-        cout << "you pressed REDO\n";
-        // redo the writing in the editor
-    }
-
 }
 
 // mecanismul pentru butoane
@@ -1203,18 +1173,6 @@ void pollEvents(RenderWindow &window) {
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::L && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[LOAD]);
-            }
-        }
-        // UNDO button action on keyboard
-        if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::U && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
-                activateButton(buttons[UNDO]);
-            }
-        }
-        // REDO button action on keyboard
-        if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::R && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
-                activateButton(buttons[REDO]);
             }
         }
 
