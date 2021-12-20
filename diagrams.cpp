@@ -41,6 +41,8 @@ Text createTextForCode(Box box, string str, Font &font) {
         text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-xheight);
     else if(str == 'j')
         text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-xheight-(text.getLocalBounds().height-xheight)/2+0.5);
+    else if(str == '7' || str == '9')
+        text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-text.getLocalBounds().height+1);
     else
         text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-text.getLocalBounds().height);
     text.setOrigin(text.getLocalBounds().left, text.getLocalBounds().top);

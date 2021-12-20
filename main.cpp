@@ -80,7 +80,7 @@ Point diagramP = originDiagramP;
 Point originICode = {CODE_MARGIN_WIDTH, CODE_MARGIN_HEIGHT};
 
 // pozitia initiala a codului
-Point codeP = originICode;
+Point codeP = {0, 0};
 
 // variabilele pentru zoom
 float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.75;
@@ -843,22 +843,38 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 void printCodeEdit(RenderWindow &window) {
     Box box;
     string str;
-    int k = 10, nr = 1;
-    for(int line = 0; line < (int)codeEdit.size() && line < LIMIT_LINE_CODE; line++) {
-        box.x = originICode.x+CODEEDIT_MARGIN_HEIGHT-(nr-1)*BLOCK_CODE_WIDTH;
-        box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_WIDTH;
+    int k = 1, nr = 0, p = 10, aux = codeP.y+1;
+    while(aux) {
+        nr++;
+        aux /= 10;
+    }
+    aux = nr;
+    while(aux) {
+        if(aux%2 == 1)
+            aux--, k *= p;
+        else
+            aux /= 2, p = p*p;
+    }
+    codeP = {0, 0};
+    if(cursorCP.x > LIMIT_COLUMN_CODE)
+        codeP.x = cursorCP.x-LIMIT_COLUMN_CODE;
+    if(cursorCP.y > LIMIT_LINE_CODE-1)
+        codeP.y = cursorCP.y-LIMIT_LINE_CODE+1;
+    for(int line = 0, aLine = codeP.y; aLine < (int)codeEdit.size() && line < (int)codeEdit.size() && line < LIMIT_LINE_CODE; line++, aLine++) {
+        box.x = originICode.x+CODEEDIT_MARGIN_WIDTH-(nr-1)*BLOCK_CODE_WIDTH;
+        box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
         box.length = nr*BLOCK_CODE_WIDTH;
         box.height = BLOCK_CODE_HEIGHT;
-        str = intToString(line+1);
+        str = intToString(aLine+1);
         window.draw(createTextForCode(box, str, font));
-        if(line == k-2)
+        if(aLine == k-2)
             k *= 10, nr++;
-        for(int column = 0; column < (int)codeEdit[line].size() && column < LIMIT_COLUMN_CODE; column++) {
-            box.x = originICode.x+(column+1)*BLOCK_CODE_WIDTH+CODEEDIT_MARGIN_HEIGHT;
-            box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_WIDTH;
+        for(int column = 0, aColumn = codeP.x; aColumn < (int)codeEdit[aLine].size() && column < (int)codeEdit[aLine].size() && column < LIMIT_COLUMN_CODE; column++, aColumn++) {
+            box.x = originICode.x+(column+1)*BLOCK_CODE_WIDTH+CODEEDIT_MARGIN_WIDTH;
+            box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
             box.length = BLOCK_CODE_WIDTH;
             box.height = BLOCK_CODE_HEIGHT;
-            str = codeEdit[line][column];
+            str = codeEdit[aLine][aColumn];
             window.draw(createTextForCode(box, str, font));
         }
     }
@@ -937,11 +953,28 @@ void backgroundCompilerDraw(RenderWindow &window) {
 }
 
 // line draw
-void lineDraw(Point startP, Point stopP, RenderWindow &window) {
+void lineDraw(Point startP, Point stopP, Color color, RenderWindow &window) {
     VertexArray line(LineStrip, 2);
     line[0].position = Vector2f(startP.x, startP.y);
     line[1].position = Vector2f(stopP.x, stopP.y);
+    line[0].color = color;
+    line[1].color = color;
     window.draw(line);
+}
+
+// cursor draw
+void cursorDraw(RenderWindow &window) {
+    Point startP, stopP;
+    Point aCursorCP = cursorCP;
+    if(cursorCP.x > LIMIT_COLUMN_CODE)
+        aCursorCP.x = LIMIT_COLUMN_CODE;
+    if(cursorCP.y > LIMIT_LINE_CODE-1)
+        aCursorCP.y = LIMIT_LINE_CODE-1;
+    startP.x = originICode.x+(aCursorCP.x+1)*BLOCK_CODE_WIDTH+CODEEDIT_MARGIN_WIDTH;
+    startP.y = originICode.y+aCursorCP.y*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
+    stopP.x = startP.x;
+    stopP.y = startP.y+BLOCK_CODE_HEIGHT;
+    lineDraw(startP, stopP, Color(255, 0, 0), window);
 }
 
 // parte din mecanismul pentru butoane
@@ -989,6 +1022,8 @@ void activateButton(Button button) {
     else if(button.type == LOAD) {
         cout << "you pressed LOAD\n";
         getDataFromFile(FILENAME);
+        cursorCP = {0, 0};
+        codeEdit.push_back(vector<char>());
     }
     else if(button.type == UNDO) {
         cout << "you pressed UNDO\n";
@@ -1154,40 +1189,58 @@ void pollEvents(RenderWindow &window) {
 
         // RUN button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::C && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::C && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[RUN]);
             }
         }
         // SAVE button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::S && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::S && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[SAVE]);
             }
         }
         // LOAD button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::L && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::L && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[LOAD]);
             }
         }
         // UNDO button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::U && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::U && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[UNDO]);
             }
         }
         // REDO button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::R && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::R && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[REDO]);
             }
         }
 
         // pozitia initiala si zoom ul initial
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::O && Keyboard::isKeyPressed(Keyboard::LControl)) {
+            if(event.key.code == Keyboard::O && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 diagramP = originDiagramP;
                 zoom = 1;
+            }
+        }
+
+        // move cursor with arrow
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::Up && cursorCP.y > 0) {
+                cursorCP.y -= 1;
+                if(codeEdit.size() != 0 && cursorCP.x > codeEdit[cursorCP.y].size())
+                    cursorCP.x = codeEdit[cursorCP.y].size();
+            }
+            if(event.key.code == Keyboard::Right && codeEdit.size() != 0 && cursorCP.x < codeEdit[cursorCP.y].size())
+                cursorCP.x += 1;
+            if(event.key.code == Keyboard::Left && cursorCP.x > 0)
+                cursorCP.x -= 1;
+            if(event.key.code == Keyboard::Down && cursorCP.y < (int)codeEdit.size()-1) {
+                cursorCP.y += 1;
+                if(codeEdit.size() != 0 && cursorCP.x > codeEdit[cursorCP.y].size())
+                    cursorCP.x = codeEdit[cursorCP.y].size();
             }
         }
 
@@ -1217,10 +1270,13 @@ void updateWindow(RenderWindow &window)
 
     // afisarea codului
     printCodeEdit(window);
-    
+
     // draw a line
     lineDraw({originICode.x+CODEEDIT_MARGIN_WIDTH+BLOCK_CODE_WIDTH, originICode.y+CODEEDIT_MARGIN_HEIGHT}, \
-             {originICode.x+CODEEDIT_MARGIN_WIDTH+BLOCK_CODE_WIDTH, originICode.y+CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT}, window);
+             {originICode.x+CODEEDIT_MARGIN_WIDTH+BLOCK_CODE_WIDTH, originICode.y+CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT}, Color(255, 255, 255), window);
+
+    // afisarea cursorului
+    cursorDraw(window);
 
     interfaceDraw(window);
 
