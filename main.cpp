@@ -1362,15 +1362,6 @@ void textDrawABOUT(RenderWindow &window) {
     box.height = SCREEN_HEIGHT-MARGIN-box.y;
     string str = "Team: Laza Gabriel si Aliciuc Alexandru";
     window.draw(createText(box, str, font));
-    //Point topLeft, bottomRight;
-    //Color colorFill(255, 20,20), colorLine(255, 255, 255);
-
-    //topLeft.x = CODE_MARGIN_WIDTH;
-    //topLeft.y = CODE_MARGIN_HEIGHT;
-    //bottomRight.x = SCREEN_WIDTH-DIAGRAM_MARGIN_WIDTH;
-    //bottomRight.y = SCREEN_HEIGHT-MARGIN;
-    //window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-
 }
 
 void pollEventsABOUT(RenderWindow &window) {
