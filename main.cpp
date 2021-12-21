@@ -57,7 +57,9 @@ int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
-enum buttonType {RUN, ABOUT, SAVE, LOAD};
+enum buttonType {RUN, ABOUT, SAVE, LOAD, BACK};
+enum windowType {WIN_EDITOR, WIN_ABOUT};
+windowType winT = WIN_EDITOR;
 string errorMessage[] =
 {
     "Instructiune invalida la linia ",
@@ -113,7 +115,7 @@ struct Button {
         box.height = bottomRight.y-topLeft.y-(bottomRight.y-topLeft.y)/4;
         window.draw(createText(box, str, font));
     }
-};
+} backButton;
 
 // butoanele
 unordered_map <buttonType, Button> buttons;
@@ -133,17 +135,6 @@ void createAllButtons() {
     buttons[RUN].press = false;
     buttons[RUN].prepForPress = false;
     buttons[RUN].str = "RUN";
-
-    // ABOUT
-    buttons[ABOUT].topLeft = {originICode.x+50, MARGIN/4+100};
-    buttons[ABOUT].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3+100};
-    buttons[ABOUT].type = ABOUT;
-    buttons[ABOUT].colorFill = Color(28, 28, 28);
-    buttons[ABOUT].colorLine = Color(255, 0, 0);
-    buttons[ABOUT].colorOnPressFill = Color(0, 255, 0);
-    buttons[ABOUT].press = false;
-    buttons[ABOUT].prepForPress = false;
-    buttons[ABOUT].str = "ABOUT";
 
     // SAVE
     buttons[SAVE].topLeft = {originICode.x+50, MARGIN/4};
@@ -167,6 +158,27 @@ void createAllButtons() {
     buttons[LOAD].prepForPress = false;
     buttons[LOAD].str = "LOAD";
 
+    // ABOUT
+    buttons[ABOUT].topLeft = {originICode.x+buttons[LOAD].bottomRight.x-buttons[LOAD].topLeft.x+250, MARGIN/4};
+    buttons[ABOUT].bottomRight = {originICode.x+buttons[LOAD].bottomRight.x-buttons[LOAD].topLeft.x+250+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[ABOUT].type = ABOUT;
+    buttons[ABOUT].colorFill = Color(28, 28, 28);
+    buttons[ABOUT].colorLine = Color(255, 0, 0);
+    buttons[ABOUT].colorOnPressFill = Color(0, 255, 0);
+    buttons[ABOUT].press = false;
+    buttons[ABOUT].prepForPress = false;
+    buttons[ABOUT].str = "ABOUT";
+
+    // BACK
+    backButton.topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
+    backButton.bottomRight = {originIDiagram.x+DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    backButton.type = BACK;
+    backButton.colorFill = Color(28, 28, 28);
+    backButton.colorLine = Color(255, 0, 0);
+    backButton.colorOnPressFill = Color(0, 255, 0);
+    backButton.press = false;
+    backButton.prepForPress = false;
+    backButton.str = "BACK";
 }
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
@@ -992,7 +1004,7 @@ void activateButton(Button button) {
     }
     else if(button.type == ABOUT) {
         cout << "you pressed ABOUT\n";
-        // show a page about the team
+        winT = WIN_ABOUT;
     }
     else if(button.type == SAVE) {
         cout << "you pressed SAVE\n";
@@ -1004,27 +1016,51 @@ void activateButton(Button button) {
         cursorCP = {0, 0};
         codeEdit.push_back(vector<char>());
     }
+    else if(button.type == BACK) {
+        cout << "you pressed BACK\n";
+        winT = WIN_EDITOR;
+    }
 }
 
 // mecanismul pentru butoane
 void buttonsMechanics(RenderWindow &window) {
     Vector2i positionMouse = Mouse::getPosition(window);
-    for(auto& it: buttons) {
-        if(it.second.mouseOnButton(positionMouse.x, positionMouse.y)) {
-            if(!it.second.prepForPress && !Mouse::isButtonPressed(Mouse::Left)) {
-                it.second.prepForPress = true;
+    if(winT == WIN_EDITOR) {
+        for(auto& it: buttons) {
+            if(it.second.mouseOnButton(positionMouse.x, positionMouse.y)) {
+                if(!it.second.prepForPress && !Mouse::isButtonPressed(Mouse::Left)) {
+                    it.second.prepForPress = true;
+                }
+                else if(it.second.prepForPress && Mouse::isButtonPressed(Mouse::Left))
+                    it.second.press = true;
+                else if(it.second.press) {
+                    it.second.prepForPress = false;
+                    it.second.press = false;
+                    activateButton(it.second);
+                }
             }
-            else if(it.second.prepForPress && Mouse::isButtonPressed(Mouse::Left))
-                it.second.press = true;
-            else if(it.second.press) {
+            else {
                 it.second.prepForPress = false;
                 it.second.press = false;
-                activateButton(it.second);
+            }
+        }
+    }
+    if(winT == WIN_ABOUT) {
+        if(backButton.mouseOnButton(positionMouse.x, positionMouse.y)) {
+            if(!backButton.prepForPress && !Mouse::isButtonPressed(Mouse::Left)) {
+                backButton.prepForPress = true;
+            }
+            else if(backButton.prepForPress && Mouse::isButtonPressed(Mouse::Left))
+                backButton.press = true;
+            else if(backButton.press) {
+                backButton.prepForPress = false;
+                backButton.press = false;
+                activateButton(backButton);
             }
         }
         else {
-            it.second.prepForPress = false;
-            it.second.press = false;
+            backButton.prepForPress = false;
+            backButton.press = false;
         }
     }
 }
@@ -1288,6 +1324,89 @@ void updateWindow(RenderWindow &window)
     window.display();
 }
 
+void interfaceDrawABOUT(RenderWindow &window) {
+    Point topLeft, bottomRight;
+    Color colorFill(20, 20,20), colorLine(255, 255, 255);
+
+    topLeft = {0, 0};
+    bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+
+    // border ABOUT interface
+    topLeft.x = CODE_MARGIN_WIDTH;
+    topLeft.y = CODE_MARGIN_HEIGHT;
+    bottomRight.x = SCREEN_WIDTH-DIAGRAM_MARGIN_WIDTH;
+    bottomRight.y = SCREEN_HEIGHT-MARGIN;
+    colorFill = Color(0, 0, 0, 0);
+    colorLine = Color(255, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+}
+
+// background color for ABOUT interface
+void backgroundABOUTDraw(RenderWindow &window) {
+    Point topLeft, bottomRight;
+    topLeft.x = CODE_MARGIN_WIDTH;
+    topLeft.y = CODE_MARGIN_HEIGHT;
+    bottomRight.x = SCREEN_WIDTH-DIAGRAM_MARGIN_WIDTH;
+    bottomRight.y = SCREEN_HEIGHT-MARGIN;
+    Color colorFill = Color(14, 10, 10);
+    Color colorLine = Color(0, 0, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+}
+
+void textDrawABOUT(RenderWindow &window) {
+    Box box;
+    box.x = CODE_MARGIN_WIDTH;
+    box.y = CODE_MARGIN_HEIGHT;
+    box.length = SCREEN_WIDTH-DIAGRAM_MARGIN_WIDTH-box.x;
+    box.height = SCREEN_HEIGHT-MARGIN-box.y;
+    string str = "Team: Laza Gabriel si Aliciuc Alexandru";
+    window.draw(createText(box, str, font));
+    //Point topLeft, bottomRight;
+    //Color colorFill(255, 20,20), colorLine(255, 255, 255);
+
+    //topLeft.x = CODE_MARGIN_WIDTH;
+    //topLeft.y = CODE_MARGIN_HEIGHT;
+    //bottomRight.x = SCREEN_WIDTH-DIAGRAM_MARGIN_WIDTH;
+    //bottomRight.y = SCREEN_HEIGHT-MARGIN;
+    //window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+
+}
+
+void pollEventsABOUT(RenderWindow &window) {
+    bool resizedEvent = false;
+    Event event;
+    while(window.pollEvent(event)) {
+        if(event.type == Event::Closed)
+            window.close();
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::B && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl)))
+                winT = WIN_EDITOR;
+        }
+
+        // resize
+        if(event.type == Event::Resized)
+            resizedEvent = true;
+    }
+    if(resizedEvent)
+        oneTimeResize = false;
+    if(sizeScreen) {
+        oneTimeResize = true;
+        sizeScreen = false;
+    }
+    if(!oneTimeResize && !resizedEvent && !Mouse::isButtonPressed(Mouse::Left))
+        sizeScreen = true;
+}
+
+void updateWindowABOUT(RenderWindow &window) {
+    window.clear();
+    interfaceDrawABOUT(window);
+    backgroundABOUTDraw(window);
+    textDrawABOUT(window);
+    backButton.draw(window, font);
+    window.display();
+}
+
 //void Debugger()
 //{
 //    initTree();
@@ -1327,16 +1446,24 @@ int main() {
     //Debugger();
 
     while(window.isOpen()) {
-        pollEvents(window);
-        buttonsMechanics(window);
-        resizeMechanics(window);
-        if(Tree != NULL && validTree) {
-            moveMechanics(1, window);
-            zoomMechanics();
+        if(winT == WIN_EDITOR) {
+            pollEvents(window);
+            buttonsMechanics(window);
+            resizeMechanics(window);
+            if(Tree != NULL && validTree) {
+                moveMechanics(1, window);
+                zoomMechanics();
+            }
+            updateWindow(window);
+            if(Tree != NULL && validTree) {
+                moveMechanics(-1, window);
+            }
         }
-        updateWindow(window);
-        if(Tree != NULL && validTree) {
-            moveMechanics(-1, window);
+        else if(winT == WIN_ABOUT) {
+            pollEventsABOUT(window);
+            buttonsMechanics(window);
+            resizeMechanics(window);
+            updateWindowABOUT(window);
         }
     }
     return 0;
