@@ -1204,9 +1204,7 @@ void pollEvents(RenderWindow &window) {
 
         if(event.type == sf::Event::TextEntered) {
             if(32 <= event.text.unicode && event.text.unicode <= 126) {
-                vector <char>::iterator it;
-                it = codeEdit[cursorCP.y].begin();
-                codeEdit[cursorCP.y].insert(it+cursorCP.x, static_cast<char>(event.text.unicode));
+                codeEdit[cursorCP.y].insert(codeEdit[cursorCP.y].begin()+cursorCP.x, static_cast<char>(event.text.unicode));
                 cursorCP.x += 1;
             }
             else if(event.text.unicode == 13) { // enter
