@@ -1210,14 +1210,26 @@ void pollEvents(RenderWindow &window) {
                 cursorCP.x += 1;
             }
             else if(event.text.unicode == 13) { // enter
-                vector <vector<char>>::iterator it;
-                it = codeEdit.begin();
-                codeEdit.insert(it+cursorCP.y+1, vector<char>());
+                codeEdit.insert(codeEdit.begin()+cursorCP.y+1, vector<char>());
+                codeEdit[cursorCP.y+1].insert(codeEdit[cursorCP.y+1].begin(), codeEdit[cursorCP.y].begin()+cursorCP.x, codeEdit[cursorCP.y].end());
+                codeEdit[cursorCP.y].erase(codeEdit[cursorCP.y].begin()+cursorCP.x, codeEdit[cursorCP.y].end());
                 cursorCP.x = 0;
                 cursorCP.y += 1;
             }
             else if(event.text.unicode == 8) { //backspace
-                // i need to work at that
+                if(cursorCP.x == 0) {
+                    if(cursorCP.y != 0) {
+                        cursorCP.x = codeEdit[cursorCP.y-1].size();
+                        codeEdit[cursorCP.y-1].insert(codeEdit[cursorCP.y-1].end(), codeEdit[cursorCP.y].begin(), codeEdit[cursorCP.y].end());
+                        codeEdit[cursorCP.y].clear();
+                        codeEdit.erase(codeEdit.begin()+cursorCP.y);
+                        cursorCP.y -= 1;
+                    }
+                }
+                else {
+                    codeEdit[cursorCP.y].erase(codeEdit[cursorCP.y].begin()+cursorCP.x-1);
+                    cursorCP.x -= 1;
+                }
             }
         }
 
