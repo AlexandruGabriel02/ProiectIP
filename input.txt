@@ -1,44 +1,10 @@
-while a
-if a
-pass
-while x>=123
 var int x
-set x 53
+var string y
+if x>2
 pass
-endif
+pass
 pass
 else
 pass
 pass
-pass
-while a
-pass
-pass
 endif
-pass
-pass
-endif
-endwhile
-1234567890abcdefg123456789abcdefg
-while a
-if a
-pass
-while x>=123
-var int x
-set x 53
-pass
-endif
-pass
-else
-pass
-pass
-pass
-while a
-pass
-pass
-endif
-pass
-pass
-endif
-endwhile
-

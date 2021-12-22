@@ -3,8 +3,8 @@
 #include <fstream>
 #include <set>
 #include <unordered_map>
-//#include "diagrams.h"
-#include "diagrams.cpp"
+#include "diagrams.h"
+//#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -64,7 +64,7 @@ string errorMessage[] =
 {
     "Instructiune invalida la linia ",
     "Tip de date declarat incorect la linia ",
-    "Variabila declarata incorect la linia ",
+    "Variabila incorecta la linia ",
     "Linia de cod contine prea putine sau prea multe cuvinte la linia ",
     "Variabila nedeclarata utilizata la linia ",
     "Variabila declarata deja este utilizata la linia ",
@@ -85,7 +85,7 @@ Point originICode = {CODE_MARGIN_WIDTH, CODE_MARGIN_HEIGHT};
 Point codeP = {0, 0};
 
 // variabilele pentru zoom
-float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.75;
+float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.3;
 
 // variabilele pentru move
 bool moveScreen = false;
@@ -303,9 +303,13 @@ void getDataFromFile(string filename) {
     fin.open(filename);
     while(!fin.eof()) {
         string str = readLineFromFile();
-        codeEdit.push_back(vector<char>());
-        for(int i = 0 ; i < (int)str.size(); i++)
-            codeEdit[codeEdit.size()-1].push_back(str[i]);
+
+        if (!str.empty())
+        {
+            codeEdit.push_back(vector<char>());
+            for(int i = 0 ; i < (int)str.size(); i++)
+                codeEdit[codeEdit.size()-1].push_back(str[i]);
+        }
     }
     fin.close();
 }
@@ -313,6 +317,12 @@ void getDataFromFile(string filename) {
 // vector<vector<char>> to filename
 void setDataToFile(string filename) {
     fout.open(filename);
+
+    ///daca nu am o linie libera la final, o adaug (este necesara pt executarea codului)
+    ///nu mai sunt nevoit astfel sa dau enter manual din program la finalul codului
+    if (codeEdit[codeEdit.size() - 1].size() > 0)
+        codeEdit.push_back(vector<char>());
+
     for(int line = 0; line < (int)codeEdit.size(); line++) {
         for(int column = 0; column < (int)codeEdit[line].size(); column++) {
             fout << codeEdit[line][column];
@@ -974,6 +984,8 @@ void activateButton(Button button) {
         cout << "you pressed RUN\n";
         validTree = true;
         lineCount = 0;
+        declaredGlobal.clear();
+        declaredLocal.clear();
         initTree();
 
         setDataToFile(TEMPFILE);
@@ -982,12 +994,13 @@ void activateButton(Button button) {
         fin.close();
         remove(TEMPFILE);
 
+
         checkErrors_DFS(Tree);
 
         if(validTree) {
             buildDP_DFS(Tree);
             buildDiagram_DFS(Tree, Tree);
-            str_compiler_info = "Ok";
+            str_compiler_info = "Cod executat cu succes!";
           //  TreeDFS(Tree, 0); ///afisez arborele
           //  clearTree(Tree);
 
@@ -1014,7 +1027,7 @@ void activateButton(Button button) {
         cout << "you pressed LOAD\n";
         getDataFromFile(FILENAME);
         cursorCP = {0, 0};
-        codeEdit.push_back(vector<char>());
+      //  codeEdit.push_back(vector<char>()); ///am mutat linia asta in setDataToFile !!!
     }
     else if(button.type == BACK) {
         cout << "you pressed BACK\n";
@@ -1195,7 +1208,7 @@ void pollEvents(RenderWindow &window) {
 
         // RUN button action on keyboard
         if(event.type == Event::KeyPressed) {
-            if(event.key.code == Keyboard::C && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
+            if(event.key.code == Keyboard::R && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[RUN]);
             }
         }
