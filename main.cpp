@@ -57,20 +57,20 @@ int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
-    SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE}; ///de adaugat pe parcurs
+    SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE}; ///de adaugat pe parcurs
 enum buttonType {RUN, ABOUT, SAVE, LOAD, BACK};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
 windowType winT = WIN_EDITOR;
 string errorMessage[] =
 {
-    "Instructiune invalida la linia ",
-    "Tip de date declarat incorect la linia ",
-    "Variabila incorecta la linia ",
-    "Linia de cod contine prea putine sau prea multe cuvinte la linia ",
-    "Variabila nedeclarata utilizata la linia ",
-    "Variabila declarata deja este utilizata la linia ",
-    "Expresie incorecta aritmetic la linia ", ///de facut
-    "Instructiune de tip else/endif/endwhile nefolosita/probabil utilizata incorect la linia "
+    "EROARE: Instructiune invalida la linia ",
+    "EROARE: Tip de date declarat incorect la linia ",
+    "EROARE: Variabila incorecta la linia ",
+    "EROARE: Portiune de cod incompleta la linia ",
+    "EROARE: Variabila nedeclarata utilizata la linia ",
+    "EROARE: Variabila declarata multiplu la linia ",
+    "EROARE: Expresie incorecta aritmetic la linia ", ///de facut
+    "EROARE: Structura while/if incorecta la linia "
 };
 
 // pozita interfatei diagramei
@@ -128,8 +128,8 @@ vector <vector <char>> codeEdit;
 
 void createAllButtons() {
     // RUN
-    buttons[RUN].topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
-    buttons[RUN].bottomRight = {originIDiagram.x+DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    buttons[RUN].topLeft = {originIDiagram.x + DIAGRAM_WIDTH - BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
+    buttons[RUN].bottomRight = {originIDiagram.x + DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
     buttons[RUN].type = RUN;
     buttons[RUN].colorFill = Color(28, 28, 28);
     buttons[RUN].colorLine = Color(255, 0, 0);
@@ -313,6 +313,9 @@ void getDataFromFile(string filename) {
                 codeEdit[codeEdit.size()-1].push_back(str[i]);
         }
     }
+
+    if (codeEdit.empty())
+        codeEdit.push_back(vector<char>());
     fin.close();
 }
 
@@ -395,7 +398,7 @@ void buildTree(node* &currentNode)
                     if (newNode -> words.size() != 1)
                     {
                         validTree = false;
-                        error = make_pair(SYNTAX_ERROR_LINE, newNode -> lineOfCode);
+                        error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, newNode -> lineOfCode);
                         return;
                     }
 
@@ -470,7 +473,7 @@ void checkErrors_DFS(node* currentNode)
             if (currentNode -> words.size() != 3) ///o linie de tip var trebuie sa aiba 3 cuvinte; aceeasi idee si mai jos
             {
                 validTree = false;
-                error = make_pair(SYNTAX_ERROR_LINE, currentNode -> lineOfCode);
+                error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
             else
@@ -509,7 +512,7 @@ void checkErrors_DFS(node* currentNode)
             if (currentNode -> words.size() != 3)
             {
                 validTree = false;
-                error = make_pair(SYNTAX_ERROR_LINE, currentNode -> lineOfCode);
+                error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
             else
@@ -537,7 +540,7 @@ void checkErrors_DFS(node* currentNode)
             if (currentNode -> words.size() != 2)
             {
                 validTree = false;
-                error = make_pair(SYNTAX_ERROR_LINE, currentNode -> lineOfCode);
+                error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
             else
@@ -563,7 +566,7 @@ void checkErrors_DFS(node* currentNode)
             if (currentNode -> words.size() != 2)
             {
                 validTree = false;
-                error = make_pair(SYNTAX_ERROR_LINE, currentNode -> lineOfCode);
+                error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
             else
@@ -593,7 +596,7 @@ void checkErrors_DFS(node* currentNode)
             if (currentNode -> words.size() != 1)
             {
                 validTree = false;
-                error = make_pair(SYNTAX_ERROR_LINE, currentNode -> lineOfCode);
+                error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
         }
@@ -602,7 +605,7 @@ void checkErrors_DFS(node* currentNode)
             if (currentNode -> words.size() != 2)
             {
                 validTree = false;
-                error = make_pair(SYNTAX_ERROR_LINE, currentNode -> lineOfCode);
+                error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
             else
@@ -1309,6 +1312,15 @@ void pollEvents(RenderWindow &window) {
             if(event.key.code == Keyboard::O && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 diagramP = originDiagramP;
                 zoom = 1;
+            }
+        }
+
+        //dau clear la editor
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::D && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
+                clearCodeMemory();
+                codeEdit.push_back(vector<char>());
+                cursorCP = {0, 0};
             }
         }
 
