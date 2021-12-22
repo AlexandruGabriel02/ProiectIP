@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <set>
+#include <stack>
 #include <unordered_map>
 #include "diagrams.h"
 //#include "diagrams.cpp"
@@ -56,7 +57,7 @@ int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
-    SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION}; ///de adaugat pe parcurs
+    SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE}; ///de adaugat pe parcurs
 enum buttonType {RUN, ABOUT, SAVE, LOAD, BACK};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
 windowType winT = WIN_EDITOR;
@@ -68,7 +69,8 @@ string errorMessage[] =
     "Linia de cod contine prea putine sau prea multe cuvinte la linia ",
     "Variabila nedeclarata utilizata la linia ",
     "Variabila declarata deja este utilizata la linia ",
-    "Expresie incorecta aritmetic la linia " ///de facut
+    "Expresie incorecta aritmetic la linia ", ///de facut
+    "Instructiune de tip else/endif/endwhile nefolosita/probabil utilizata incorect la linia "
 };
 
 // pozita interfatei diagramei
@@ -624,6 +626,74 @@ void checkErrors_DFS(node* currentNode)
     }
 }
 
+///trateaza cazurile in care pun gresit endif, else, endwhile, etc.
+///pt fiecare while trebuie sa am un endwhile, iar pt fiecare if un else si dupa else un endif
+///tratez problema exact la fel ca cea a parantezarii unei expresii
+void checkStructure()
+{
+    stack <char> st;
+    int line = 0;
+    while (!fin.eof())
+    {
+        line++;
+        string str = readLineFromFile();
+        if (!str.empty())
+        {
+            string instruction = splitIntoWords(str)[0];
+
+            if (instruction == "if")
+            {
+                st.push('[');
+                st.push('(');
+            }
+            else if (instruction == "else")
+            {
+                if (st.empty() || st.top() != '(')
+                {
+                    validTree = false;
+                    error = make_pair(ERROR_INVALID_STRUCTURE, line);
+                    return;
+                }
+                else
+                    st.pop();
+
+            }
+            else if (instruction == "endif")
+            {
+                if (st.empty() || st.top() != '[')
+                {
+                    validTree = false;
+                    error = make_pair(ERROR_INVALID_STRUCTURE, line);
+                    return;
+                }
+                else
+                    st.pop();
+            }
+            else if (instruction == "while")
+            {
+                st.push('{');
+            }
+            else if (instruction == "endwhile")
+            {
+                if (st.empty() || st.top() != '{')
+                {
+                    validTree = false;
+                    error = make_pair(ERROR_INVALID_STRUCTURE, line);
+                    return;
+                }
+                else
+                    st.pop();
+            }
+        }
+    }
+
+    if (!st.empty())
+    {
+        validTree = false;
+        error = make_pair(ERROR_INVALID_STRUCTURE, line);
+    }
+}
+
 ///dp[empty_node] = noduri_simple + (1 + dp[while_empty]) + (1 + max(dp[if_T], dp[if_F]))
 ///dp - tinut in verticalNodeCount
 void buildDP_DFS(node* &currentNode)
@@ -991,11 +1061,20 @@ void activateButton(Button button) {
         setDataToFile(TEMPFILE);
         fin.open(TEMPFILE);
         buildTree(Tree);
-        fin.close();
-        remove(TEMPFILE);
-
 
         checkErrors_DFS(Tree);
+
+        if (validTree) ///daca arborele e corect mai am de verificat structura programului (erori pt endif, endwhile, else, etc)
+        {
+            ///merg inapoi la inceputul fisierului
+            fin.clear();
+            fin.seekg(0);
+
+            checkStructure();
+        }
+
+        fin.close();
+        remove(TEMPFILE);
 
         if(validTree) {
             buildDP_DFS(Tree);
