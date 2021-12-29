@@ -4,8 +4,8 @@
 #include <set>
 #include <stack>
 #include <unordered_map>
-//#include "diagrams.h"
-#include "diagrams.cpp"
+#include "diagrams.h"
+//#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -55,7 +55,7 @@ string str_compiler_info;
 int LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
 int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
-enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, READ, PRINT, PASS, END, ERROR};
+enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE}; ///de adaugat pe parcurs
 enum buttonType {RUN, ABOUT, SAVE, LOAD, BACK};
@@ -70,7 +70,7 @@ string errorMessage[] =
     "EROARE: Variabila nedeclarata utilizata la linia ",
     "EROARE: Variabila declarata multiplu la linia ",
     "EROARE: Expresie incorecta aritmetic la linia ", ///de facut
-    "EROARE: Structura while/if incorecta la linia "
+    "EROARE: Structura while/if/repeat incorecta la linia "
 };
 
 // pozita interfatei diagramei
@@ -354,13 +354,15 @@ instructionType getInstructionType(vector<string> vStr)
         return IF;
     else if (word == "while")
         return WHILE;
+    else if (word == "repeat")
+        return REPEAT;
     else if (word == "pass")
         return PASS;
     else if (word == "read")
         return READ;
     else if (word == "print")
         return PRINT;
-    else if (word == "else" || word == "endif" || word == "endwhile")
+    else if (word == "else" || word == "endif" || word == "endwhile" || word == "until")
         return END;
 
     return ERROR;
@@ -368,6 +370,7 @@ instructionType getInstructionType(vector<string> vStr)
 
 // construirea arborelui
 int lineCount = 0;
+string untilExpr = ""; ///trebuie salvata expresia din repeat until pe revenirea din recursivitate
 void buildTree(node* &currentNode)
 {
     //static int lineCount = 0; ///linia de cod la care ma aflu
@@ -395,12 +398,17 @@ void buildTree(node* &currentNode)
                     exitWhile = true; ///ies din while chiar daca nu termin de citit fisierul
 
                     ///daca am altceva pe langa acel "else\endif\endwhile" atunci linia nu e valida
-                    if (newNode -> words.size() != 1)
+                    ///daca am "until" atunci trebuie sa am exact 2 cuvinte
+                    if ((newNode -> words[0] != "until" && newNode -> words.size() != 1)  || (newNode -> words[0] == "until" && newNode -> words.size() != 2))
                     {
                         validTree = false;
                         error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, newNode -> lineOfCode);
+                        delete newNode; ///nu am avut nevoie de nod
                         return;
                     }
+
+                    if (newNode -> words[0] == "until") ///salvez expresia din until si o retin in nodul repeat (pt repeat ... until expresie)
+                        untilExpr = newNode -> words[1];
 
                     delete newNode; ///nu am avut nevoie de nod
                 }
@@ -432,6 +440,24 @@ void buildTree(node* &currentNode)
         (currentNode -> next).push_back(newNode);
         buildTree(newNode);
     }
+    else if (currentNode -> instruction == REPEAT)
+    {
+        node* newNode = new node;
+        newNode -> instruction = EMPTY_NODE;
+        (currentNode -> next).push_back(newNode);
+
+        buildTree(newNode);
+
+        ///salvez expresia din until in nodul repeat
+        if (untilExpr != "")
+        {
+            currentNode -> line += " ";
+            currentNode -> line += untilExpr;
+            currentNode -> words.push_back(untilExpr);
+        }
+        untilExpr = "";
+
+    }
 }
 
 ///parcurgerea arborelui; va trebui apelat de mai multe ori pt verificarea corectitudinii
@@ -455,7 +481,7 @@ void TreeDFS(node* currentNode, int height)
 }
 
 ///verificarea erorilor
-///mai sunt de tratat cazurile cu expresii gresite si eventual cazuri in care pun gresit endif, else, endwhile, etc.
+///mai sunt de tratat cazurile cu expresii gresite
 void checkErrors_DFS(node* currentNode)
 {
     if (currentNode != NULL && validTree)
@@ -615,6 +641,21 @@ void checkErrors_DFS(node* currentNode)
                 */
             }
         }
+        else if (currentNode -> instruction == REPEAT)
+        {
+            if (currentNode -> words.size() > 2)
+            {
+                validTree = false;
+                error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
+                return;
+            }
+            else
+            {
+                /*
+                    de verificat daca expresia este valida (currentNode -> words[1])
+                */
+            }
+        }
 
         for (node* nextNode : currentNode -> next)
             checkErrors_DFS(nextNode);
@@ -687,6 +728,21 @@ void checkStructure()
                 else
                     st.pop();
             }
+            else if (instruction == "repeat")
+            {
+                st.push('+');
+            }
+            else if (instruction == "until")
+            {
+                if (st.empty() || st.top() != '+')
+                {
+                    validTree = false;
+                    error = make_pair(ERROR_INVALID_STRUCTURE, line);
+                    return;
+                }
+                else
+                    st.pop();
+            }
         }
     }
 
@@ -715,7 +771,7 @@ void buildDP_DFS(node* &currentNode)
 
         if (currentNode -> instruction == IF)
             currentNode -> verticalNodeCount = 1 + max(currentNode -> next[0] -> verticalNodeCount, currentNode -> next[1] -> verticalNodeCount);
-        else if (currentNode -> instruction == WHILE)
+        else if (currentNode -> instruction == WHILE || currentNode -> instruction == REPEAT)
             currentNode -> verticalNodeCount = 1 + currentNode -> next[0] -> verticalNodeCount;
         else if (currentNode -> instruction != EMPTY_NODE)
             currentNode -> verticalNodeCount = 1;
@@ -732,12 +788,16 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
         if (currentNode -> instruction != EMPTY_NODE)
         {
             currentNode -> length = emptyFather -> length;
-            currentNode -> x = emptyFather -> x;
-            currentNode -> y = emptyFather -> y;
 
-            emptyFather -> y += emptyFather -> height;
+            if (currentNode -> instruction != REPEAT)
+            {
+                currentNode -> x = emptyFather -> x;
+                currentNode -> y = emptyFather -> y;
 
-            if (currentNode -> instruction != WHILE) ///bloc de tip dreptunghi
+                emptyFather -> y += emptyFather -> height;
+            }
+
+            if (currentNode -> instruction != WHILE && currentNode -> instruction != REPEAT) ///bloc de tip dreptunghi
                 currentNode -> height = emptyFather -> height;
             else ///bloc de tip bucla, trebuie sa acopere toate blocurile din interior
                 currentNode -> height = currentNode -> verticalNodeCount * emptyFather -> height;
@@ -761,7 +821,7 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
             emptyFather -> y += (currentNode -> verticalNodeCount - 1) * emptyFather -> height;
 
         }
-        else if (currentNode -> instruction == WHILE)
+        else if (currentNode -> instruction == WHILE || currentNode -> instruction == REPEAT)
         {
             float offset = emptyFather -> length / 5.; ///lungimea pentru bara din stanga
             currentNode -> next[0] -> length = emptyFather -> length - offset;
@@ -779,6 +839,14 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
                 buildDiagram_DFS(nextNode, currentNode);
             else
                 buildDiagram_DFS(nextNode, emptyFather);
+        }
+
+        if (currentNode -> instruction == REPEAT)
+        {
+            currentNode -> x = emptyFather -> x;
+            currentNode -> y = emptyFather -> y;
+
+            emptyFather -> y += emptyFather -> height;
         }
     }
 }
@@ -878,6 +946,37 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 
             // desenarea blocului pentru while
             window.draw(iterationWCreate(topLeft, bottomRight, offset, rectangleHeight));
+        }
+        else if (currentNode -> instruction == REPEAT)
+        {
+            float offset = currentNode -> length / 5.; ///lungimea pentru bara din stanga
+            float rectangleHeight = currentNode -> height / currentNode -> verticalNodeCount; ///inaltimea blocului fara bara din stanga
+            Point bottomRight;
+            bottomRight.x = currentNode -> x + currentNode -> length;
+            bottomRight.y = currentNode -> y + rectangleHeight;
+            Point topLeft;
+            topLeft.x = currentNode -> x;
+            topLeft.y = bottomRight.y - currentNode -> height;
+
+            Box box;
+            box.x = topLeft.x+offset;
+            box.y = currentNode -> y;
+            box.length = bottomRight.x-box.x;
+            box.height = rectangleHeight;
+
+            string str = "";
+            for(int i = 0; i < (int)currentNode -> words.size(); i++) {
+                str += currentNode -> words[i];
+                if (i != (int)currentNode -> words.size() - 1)
+                    str += ' ';
+            }
+
+            // desenare text pentru repeat until
+            window.draw(createText(box, str, font));
+
+            // desenarea blocului pentru repeat until
+            window.draw(iterationUCreate(topLeft, bottomRight, offset, rectangleHeight));
+
         }
         else if (currentNode -> instruction != EMPTY_NODE)
         {

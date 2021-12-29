@@ -1,3 +1,16 @@
-set x 3
-var int x
-set x 2
+while a
+if b
+repeat
+repeat
+repeat
+repeat
+pass
+until x
+until y
+until x
+until x
+else
+pass
+pass
+endif
+endwhile

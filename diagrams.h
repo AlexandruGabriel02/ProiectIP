@@ -30,6 +30,6 @@ VertexArray singleStepCreate(Point topLeft, Point bottomRight);
 
 VertexArray iterationWCreate(Point topLeft, Point bottomRight, float l, float h);
 
-VertexArray iterationUCreate(Point topLeft, Point bottomRight, float l);
+VertexArray iterationUCreate(Point topLeft, Point bottomRight, float l, float h);
 
 

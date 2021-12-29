@@ -123,12 +123,12 @@ VertexArray iterationWCreate(Point topLeft, Point bottomRight, float l, float h)
 }
 
 
-VertexArray iterationUCreate(Point topLeft, Point bottomRight, float l) {
+VertexArray iterationUCreate(Point topLeft, Point bottomRight, float l, float h) {
     VertexArray lines(LineStrip, 7);
     lines[0].position = Vector2f(topLeft.x, topLeft.y);
     lines[1].position = Vector2f(topLeft.x+l, topLeft.y);
-    lines[2].position = Vector2f(topLeft.x+l, bottomRight.y-l);
-    lines[3].position = Vector2f(bottomRight.x, bottomRight.y-l);
+    lines[2].position = Vector2f(topLeft.x+l, bottomRight.y-h);
+    lines[3].position = Vector2f(bottomRight.x, bottomRight.y-h);
     lines[4].position = Vector2f(bottomRight.x, bottomRight.y);
     lines[5].position = Vector2f(topLeft.x, bottomRight.y);
     lines[6].position = Vector2f(topLeft.x, topLeft.y);
