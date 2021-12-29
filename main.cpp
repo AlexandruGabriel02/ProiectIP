@@ -187,7 +187,7 @@ void createAllButtons() {
 bool validTree = true;
 pair <errorType, int> error;
 set <char> declaredGlobal;
-set <char> declaredLocal;
+stack < set <char> > declaredLocal;
 ///
 
 struct node
@@ -487,7 +487,7 @@ void checkErrors_DFS(node* currentNode)
     if (currentNode != NULL && validTree)
     {
         if (currentNode -> instruction == EMPTY_NODE)
-            declaredLocal.clear();
+            declaredLocal.push(set<char>());
         else if (currentNode -> instruction == ERROR) ///tipul de instructiune nu este recunoscut
         {
             validTree = false;
@@ -523,7 +523,7 @@ void checkErrors_DFS(node* currentNode)
                 if (declaredGlobal.find(ch) == declaredGlobal.end())
                 {
                     declaredGlobal.insert(ch);
-                    declaredLocal.insert(ch);
+                    declaredLocal.top().insert(ch);
                 }
                 else
                 {
@@ -663,9 +663,9 @@ void checkErrors_DFS(node* currentNode)
         ///sterg variabilele declarate in interiorul unui if/while deoarece am ajuns la final
         if (currentNode -> instruction == EMPTY_NODE)
         {
-            for (char ch : declaredLocal)
+            for (char ch : declaredLocal.top())
                 declaredGlobal.erase(ch);
-            declaredLocal.clear();
+            declaredLocal.pop();
         }
     }
 }
@@ -1157,7 +1157,8 @@ void activateButton(Button button) {
         validTree = true;
         lineCount = 0;
         declaredGlobal.clear();
-        declaredLocal.clear();
+        while (!declaredLocal.empty())
+            declaredLocal.pop();
         initTree();
 
         setDataToFile(TEMPFILE);
@@ -1660,5 +1661,6 @@ int main() {
             updateWindowABOUT(window);
         }
     }
+
     return 0;
 }

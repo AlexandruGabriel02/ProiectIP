@@ -1,16 +1,10 @@
-while a
 if b
 repeat
-repeat
-repeat
-repeat
+var int x
 pass
-until x
-until y
-until x
 until x
 else
 pass
 pass
 endif
-endwhile
+set x 5
