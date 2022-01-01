@@ -60,7 +60,7 @@ enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE,
     ERROR_STRING_OPERATIONS}; ///de adaugat pe parcurs
-enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, BACK};
+enum buttonType {RUN, COMPILE, ABOUT, SAVE, LOAD, CLEAR, BACK};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
 enum variableType{INT, STRING};
 windowType winT = WIN_EDITOR;
@@ -141,6 +141,17 @@ void createAllButtons() {
     buttons[RUN].press = false;
     buttons[RUN].prepForPress = false;
     buttons[RUN].str = "RUN";
+
+    //COMPILE
+    buttons[COMPILE].topLeft = {originICode.x + DIAGRAM_WIDTH / 2 - BLOCK_BUTTON_WIDTH / 2, SCREEN_HEIGHT-(MARGIN/4)*3};
+    buttons[COMPILE].bottomRight = {originICode.x + DIAGRAM_WIDTH / 2 + BLOCK_BUTTON_WIDTH / 2, SCREEN_HEIGHT-MARGIN/4};
+    buttons[COMPILE].type = COMPILE;
+    buttons[COMPILE].colorFill = Color(28, 28, 28);
+    buttons[COMPILE].colorLine = Color(255, 0, 0);
+    buttons[COMPILE].colorOnPressFill = Color(0, 255, 0);
+    buttons[COMPILE].press = false;
+    buttons[COMPILE].prepForPress = false;
+    buttons[COMPILE].str = "COMPILE";
 
     // SAVE
     buttons[SAVE].topLeft = {originICode.x+50, MARGIN/4};
@@ -1269,13 +1280,13 @@ void compileCode_DFS(node* currentNode)
         }
         else if (currentNode -> instruction == READ)
         {
-            /*
             char variable = currentNode -> words[1][0];
+            cout << "Cititi valoarea lui " << variable << ": ";
             if (varType[variable] == INT)
                 cin >> valMap[variable];
 
             else
-                cin >> strMap[variable];*/
+                cin >> strMap[variable];
         }
         else if (currentNode -> instruction == IF)
         {
@@ -1631,7 +1642,6 @@ void activateButton(Button button) {
             buildDP_DFS(Tree);
             buildDiagram_DFS(Tree, Tree);
             system("CLS");
-            compileCode_DFS(Tree);
 
             str_compiler_info = "Cod executat cu succes!";
           //  TreeDFS(Tree, 0); ///afisez arborele
@@ -1645,6 +1655,11 @@ void activateButton(Button button) {
             str_compiler_info = errorMessage[error.first]+intToString(error.second);
 
         }
+    }
+    else if (button.type == COMPILE)
+    {
+        system("CLS");
+        compileCode_DFS(Tree);
     }
     else if(button.type == ABOUT) {
         winT = WIN_ABOUT;
