@@ -4,6 +4,7 @@
 #include <set>
 #include <stack>
 #include <unordered_map>
+#include <cstring>
 #include "diagrams.h"
 //#include "diagrams.cpp"
 
@@ -69,7 +70,7 @@ string errorMessage[] =
     "EROARE: Portiune de cod incompleta la linia ",
     "EROARE: Variabila nedeclarata utilizata la linia ",
     "EROARE: Variabila declarata multiplu la linia ",
-    "EROARE: Expresie incorecta aritmetic la linia ", ///de facut
+    "EROARE: Expresie incorecta la linia ", ///de facut
     "EROARE: Structura while/if/repeat incorecta la linia "
 };
 
@@ -480,6 +481,209 @@ void TreeDFS(node* currentNode, int height)
     }
 }
 
+///verifica daca o expresie este valida
+///intr-o instructiune de tip set pot avea doar expresii "scurte" (fara comparatii, fullExpr = 0)
+///in expresii din if/bucle am expresii full (fullExpr = 1)
+///expresie: variabile, numere, paranteze, operatori: +, -, *, /, >, <, >=, <=, ==;
+///expresie intreaga -> expresie_scurta1 <comp> expresie_scurta2
+bool isValidExpr(string expression, int codeLine, bool fullExpr)
+{
+    char op[] = "+-*/";
+    char comp[] = "<=>";
+    int st = 0; ///stiva
+    int compCount = 0; ///sa evit erorile de genul "if a>b>c ..."
+
+    for (char ch : expression)
+    {
+        ///verificare caractere invalide
+        if (!isalnum(ch) && ch != '(' && ch != ')' && !strchr(op, ch))
+        {
+            if ((fullExpr && !strchr(comp, ch)) || !fullExpr)
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+        }
+
+        ///verificare parantezare
+        if (ch == '(')
+            st++;
+        else if (ch == ')')
+        {
+            if (st <= 0)
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+            else
+                st--;
+        }
+    }
+    if (st != 0)
+    {
+        error = make_pair(ERROR_EXPRESSION, codeLine);
+        return false;
+    }
+
+    ///impart expresia in cuvinte
+    vector<string> tokens;
+    for (unsigned i = 0; i < expression.size(); i++)
+    {
+        char ch = expression[i];
+        string token;
+
+        if (isdigit(ch))
+        {
+            while (isdigit(ch) && i < expression.size())
+            {
+                token.push_back(ch);
+                i++;
+                ch = expression[i];
+            }
+            i--;
+
+            tokens.push_back(token);
+        }
+        else if (strchr(comp, ch))
+        {
+            compCount++;
+            while (strchr(comp, ch) && i < expression.size())
+            {
+                token.push_back(ch);
+                i++;
+                ch = expression[i];
+            }
+            i--;
+
+            tokens.push_back(token);
+        }
+        else
+        {
+            token.push_back(ch);
+            tokens.push_back(token);
+        }
+    }
+    if (compCount >= 2)
+    {
+        error = make_pair(ERROR_EXPRESSION, codeLine);
+        return false;
+    }
+
+
+    for (unsigned i = 0; i < tokens.size() - 1; i++)
+    {
+        if (tokens[i][0] == '(')
+        {
+            char ch = tokens[i + 1][0];
+            if (ch == ')' || ch == '/' || ch == '*' || strchr(comp, ch))
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+        }
+        else if (tokens[i][0] == ')')
+        {
+            char ch = tokens[i + 1][0];
+            if (ch == '(' || isalnum(ch))
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+        }
+        else if (strchr(op, tokens[i][0])) ///este operator
+        {
+            char ch = tokens[i + 1][0];
+            if (strchr(op, ch) || ch == ')' || strchr(comp, ch))
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+        }
+        else if (isdigit(tokens[i][0])) ///este numar
+        {
+            char ch = tokens[i + 1][0];
+            if (ch == '(' || isalpha(ch))
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+        }
+        else if (isalpha(tokens[i][0]))
+        {
+            char ch = tokens[i + 1][0];
+            if (isalnum(ch))
+            {
+                error = make_pair(SYNTAX_ERROR_VARIABLE, codeLine);
+                return false;
+            }
+
+            if (ch == '(')
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+
+            if (declaredGlobal.find(tokens[i][0]) == declaredGlobal.end())
+            {
+                error = make_pair(ERROR_UNDECLARED, codeLine);
+                return false;
+            }
+        }
+        else if (fullExpr && strchr(comp, tokens[i][0])) ///comparatie
+        {
+            if (tokens[i].size() > 2)
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+            else if (tokens[i].size() == 1)
+            {
+                if (tokens[i][0] == '=')
+                {
+                    error = make_pair(ERROR_EXPRESSION, codeLine);
+                    return false;
+                }
+            }
+            else
+            {
+                if (tokens[i][1] != '=')
+                {
+                    error = make_pair(ERROR_EXPRESSION, codeLine);
+                    return false;
+                }
+            }
+
+            char ch = tokens[i + 1][0];
+            if (ch == ')' || ch == '*' || ch == '/' || strchr(comp, ch))
+            {
+                error = make_pair(ERROR_EXPRESSION, codeLine);
+                return false;
+            }
+        }
+    }
+
+    ///ultimul token
+    char ch = tokens[tokens.size() - 1][0];
+    if (strchr(op, ch) || strchr(comp, ch))
+    {
+        error = make_pair(ERROR_EXPRESSION, codeLine);
+        return false;
+    }
+    else if (isalpha(ch))
+    {
+        if (declaredGlobal.find(ch) == declaredGlobal.end())
+        {
+            error = make_pair(ERROR_UNDECLARED, codeLine);
+            return false;
+        }
+    }
+
+    ///de rezolvat variabilele de tip string
+
+    return true;
+
+}
+
 ///verificarea erorilor
 ///mai sunt de tratat cazurile cu expresii gresite
 void checkErrors_DFS(node* currentNode)
@@ -559,6 +763,8 @@ void checkErrors_DFS(node* currentNode)
                 }
 
                 ///de verificat corectitudinea expresiei (currentNode -> words[2])
+                bool fullExpr = false;
+                validTree = isValidExpr(currentNode -> words[2], currentNode -> lineOfCode, fullExpr);
             }
         }
         else if (currentNode -> instruction == READ)
@@ -638,7 +844,10 @@ void checkErrors_DFS(node* currentNode)
             {
                 /*
                     de verificat daca expresia este valida (currentNode -> words[1])
+
                 */
+                bool fullExpr = true;
+                validTree = isValidExpr(currentNode -> words[1], currentNode -> lineOfCode, fullExpr);
             }
         }
         else if (currentNode -> instruction == REPEAT)
@@ -654,6 +863,8 @@ void checkErrors_DFS(node* currentNode)
                 /*
                     de verificat daca expresia este valida (currentNode -> words[1])
                 */
+                bool fullExpr = true;
+                validTree = isValidExpr(currentNode -> words[1], currentNode -> lineOfCode, fullExpr);
             }
         }
 

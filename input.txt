@@ -1,6 +1,6 @@
-if b
-repeat
 var int x
+if x
+repeat
 pass
 until x
 else
