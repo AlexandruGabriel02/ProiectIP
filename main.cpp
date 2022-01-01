@@ -58,9 +58,11 @@ int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
-    SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE}; ///de adaugat pe parcurs
+    SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE,
+    ERROR_STRING_OPERATIONS}; ///de adaugat pe parcurs
 enum buttonType {RUN, ABOUT, SAVE, LOAD, BACK};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
+enum variableType{INT, STRING};
 windowType winT = WIN_EDITOR;
 string errorMessage[] =
 {
@@ -70,8 +72,9 @@ string errorMessage[] =
     "EROARE: Portiune de cod incompleta la linia ",
     "EROARE: Variabila nedeclarata utilizata la linia ",
     "EROARE: Variabila declarata multiplu la linia ",
-    "EROARE: Expresie incorecta la linia ", ///de facut
-    "EROARE: Structura while/if/repeat incorecta la linia "
+    "EROARE: Expresie incorecta la linia ",
+    "EROARE: Structura while/if/repeat incorecta la linia ",
+    "EROARE: Operatii invalide cu stringuri la linia "
 };
 
 // pozita interfatei diagramei
@@ -189,6 +192,12 @@ bool validTree = true;
 pair <errorType, int> error;
 set <char> declaredGlobal;
 stack < set <char> > declaredLocal;
+///
+
+///retin valorile variabilelor si tipul lor
+unordered_map <char, variableType> varType;
+unordered_map <char, int> valMap;
+unordered_map <char, string> strMap;
 ///
 
 struct node
@@ -481,6 +490,78 @@ void TreeDFS(node* currentNode, int height)
     }
 }
 
+int evalExpr(string expr);
+int term(string expr);
+int factor(string expr);
+
+int exprPtr = 0;
+int evalExpr(string expr)
+{
+    int val = term(expr);
+    while (expr[exprPtr] == '+' || expr[exprPtr] == '-')
+    {
+        if (expr[exprPtr] == '+')
+        {
+            exprPtr++;
+            val += term(expr);
+        }
+        else
+        {
+            exprPtr++;
+            val -= term(expr);
+        }
+    }
+    return val;
+}
+
+int term(string expr)
+{
+    int val = factor(expr);
+    while (expr[exprPtr] == '*' || expr[exprPtr] == '/')
+    {
+        if (expr[exprPtr] == '*')
+        {
+            exprPtr++;
+            val *= factor(expr);
+        }
+        else
+        {
+            exprPtr++;
+            val /= factor(expr);
+        }
+    }
+    return val;
+}
+
+int factor(string expr)
+{
+    int val = 0;
+    if (expr[exprPtr] == '(')
+    {
+        exprPtr++;
+        val = evalExpr(expr);
+        exprPtr++;
+    }
+    else
+    {
+        if (isdigit(expr[exprPtr]))
+        {
+            val = 0;
+            while (isdigit(expr[exprPtr]))
+            {
+                val = val * 10 + (expr[exprPtr] - '0');
+                exprPtr++;
+            }
+        }
+        else if (isalpha(expr[exprPtr]))
+        {
+            val = valMap[expr[exprPtr]];
+            exprPtr++;
+        }
+    }
+    return val;
+}
+
 ///verifica daca o expresie este valida
 ///intr-o instructiune de tip set pot avea doar expresii "scurte" (fara comparatii, fullExpr = 0)
 ///in expresii din if/bucle am expresii full (fullExpr = 1)
@@ -608,7 +689,7 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
                 return false;
             }
         }
-        else if (isalpha(tokens[i][0]))
+        else if (isalpha(tokens[i][0])) ///este variabila
         {
             char ch = tokens[i + 1][0];
             if (isalnum(ch))
@@ -623,9 +704,15 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
                 return false;
             }
 
-            if (declaredGlobal.find(tokens[i][0]) == declaredGlobal.end())
+            if (declaredGlobal.find(tokens[i][0]) == declaredGlobal.end()) ///nu am declarat variabila
             {
                 error = make_pair(ERROR_UNDECLARED, codeLine);
+                return false;
+            }
+
+            if (varType[tokens[i][0]] == STRING)
+            {
+                error = make_pair(ERROR_STRING_OPERATIONS, codeLine);
                 return false;
             }
         }
@@ -674,6 +761,12 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
         if (declaredGlobal.find(ch) == declaredGlobal.end())
         {
             error = make_pair(ERROR_UNDECLARED, codeLine);
+            return false;
+        }
+
+        if (varType[ch] == STRING)
+        {
+            error = make_pair(ERROR_STRING_OPERATIONS, codeLine);
             return false;
         }
     }
@@ -728,6 +821,11 @@ void checkErrors_DFS(node* currentNode)
                 {
                     declaredGlobal.insert(ch);
                     declaredLocal.top().insert(ch);
+
+                    if (currentNode -> words[1] == "int")
+                        varType[ch] = INT;
+                    else
+                        varType[ch] = STRING;
                 }
                 else
                 {
@@ -763,8 +861,12 @@ void checkErrors_DFS(node* currentNode)
                 }
 
                 ///de verificat corectitudinea expresiei (currentNode -> words[2])
-                bool fullExpr = false;
-                validTree = isValidExpr(currentNode -> words[2], currentNode -> lineOfCode, fullExpr);
+                ///daca am variabila string o sa consider al treilea cuvant drept string, nu expresie
+                if (varType[ch] == INT)
+                {
+                    bool fullExpr = false;
+                    validTree = isValidExpr(currentNode -> words[2], currentNode -> lineOfCode, fullExpr);
+                }
             }
         }
         else if (currentNode -> instruction == READ)
@@ -1060,6 +1162,40 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
             emptyFather -> y += emptyFather -> height;
         }
     }
+}
+
+void compileCode_DFS(node* currentNode)
+{
+    if (currentNode != NULL)
+    {
+
+        if (currentNode -> instruction == SET)
+        {
+            char variable = currentNode -> words[1][0];
+            if (varType[variable] == INT)
+            {
+                exprPtr = 0;
+                valMap[variable] = evalExpr(currentNode -> words[2]);
+            }
+            else
+            {
+                strMap[variable] = currentNode -> words[2];
+            }
+        }
+        else if (currentNode -> instruction == PRINT)
+        {
+            char variable = currentNode -> words[1][0];
+            if (varType[variable] == INT)
+                cout << variable << " = " << valMap[variable] << "\n";
+
+            else
+                cout << variable << " = " << strMap[variable] << "\n";
+        }
+
+        for (node* nextNode : currentNode -> next)
+            compileCode_DFS(nextNode);
+    }
+
 }
 
 //buildDiagram_DFS is not working if i rerun the function with anothers variables for Tree -> x, y, length, height
@@ -1364,12 +1500,13 @@ void cursorDraw(RenderWindow &window) {
 // parte din mecanismul pentru butoane
 void activateButton(Button button) {
     if(button.type == RUN) {
-        cout << "you pressed RUN\n";
         validTree = true;
         lineCount = 0;
         declaredGlobal.clear();
         while (!declaredLocal.empty())
             declaredLocal.pop();
+        varType.clear();
+        valMap.clear();
         initTree();
 
         setDataToFile(TEMPFILE);
@@ -1393,6 +1530,8 @@ void activateButton(Button button) {
         if(validTree) {
             buildDP_DFS(Tree);
             buildDiagram_DFS(Tree, Tree);
+            compileCode_DFS(Tree);
+
             str_compiler_info = "Cod executat cu succes!";
           //  TreeDFS(Tree, 0); ///afisez arborele
           //  clearTree(Tree);
@@ -1403,27 +1542,21 @@ void activateButton(Button button) {
         }
         else {
             str_compiler_info = errorMessage[error.first]+intToString(error.second);
-            cout << "input invalid\n";
-            cout << errorMessage[error.first] << error.second << "\n";
 
         }
     }
     else if(button.type == ABOUT) {
-        cout << "you pressed ABOUT\n";
         winT = WIN_ABOUT;
     }
     else if(button.type == SAVE) {
-        cout << "you pressed SAVE\n";
         setDataToFile(FILENAME);
     }
     else if(button.type == LOAD) {
-        cout << "you pressed LOAD\n";
         getDataFromFile(FILENAME);
         cursorCP = {0, 0};
       //  codeEdit.push_back(vector<char>()); ///am mutat linia asta in setDataToFile !!!
     }
     else if(button.type == BACK) {
-        cout << "you pressed BACK\n";
         winT = WIN_EDITOR;
     }
 }

@@ -1,10 +1,10 @@
 var int x
-if x
-repeat
-pass
-until x
-else
-pass
-pass
-endif
-set x 5
+var int y
+var string z
+var int q
+set x 10
+set y x
+set q -2+x*y
+set z info
+print q
+print z
