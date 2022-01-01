@@ -60,7 +60,7 @@ enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE,
     ERROR_STRING_OPERATIONS}; ///de adaugat pe parcurs
-enum buttonType {RUN, ABOUT, SAVE, LOAD, BACK};
+enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, BACK};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
 enum variableType{INT, STRING};
 windowType winT = WIN_EDITOR;
@@ -174,6 +174,17 @@ void createAllButtons() {
     buttons[ABOUT].press = false;
     buttons[ABOUT].prepForPress = false;
     buttons[ABOUT].str = "ABOUT";
+
+    ///CLEAR
+    buttons[CLEAR].topLeft = {originICode.x+buttons[ABOUT].bottomRight.x-buttons[ABOUT].topLeft.x+400, MARGIN/4};
+    buttons[CLEAR].bottomRight = {originICode.x+buttons[ABOUT].bottomRight.x-buttons[ABOUT].topLeft.x+400+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[CLEAR].type = CLEAR;
+    buttons[CLEAR].colorFill = Color(28, 28, 28);
+    buttons[CLEAR].colorLine = Color(255, 0, 0);
+    buttons[CLEAR].colorOnPressFill = Color(0, 255, 0);
+    buttons[CLEAR].press = false;
+    buttons[CLEAR].prepForPress = false;
+    buttons[CLEAR].str = "CLEAR";
 
     // BACK
     backButton.topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
@@ -490,6 +501,7 @@ void TreeDFS(node* currentNode, int height)
     }
 }
 
+/////////evaluare de expresii
 int evalExpr(string expr);
 int term(string expr);
 int factor(string expr);
@@ -561,6 +573,66 @@ int factor(string expr)
     }
     return val;
 }
+
+bool evalCondition(string expr) ///pentru conditiile din if/while/repeat until
+{
+    unsigned int i = 0;
+    string expr1, expr2, comp;
+    for (i = 0; i < expr.size() && !strchr("<=>", expr[i]); i++)
+        expr1.push_back(expr[i]);
+    for ( ; i < expr.size() && strchr("<=>", expr[i]); i++)
+        comp.push_back(expr[i]);
+    for ( ; i < expr.size(); i++)
+        expr2.push_back(expr[i]);
+
+    if (comp.empty())
+    {
+        return evalExpr(expr1) != 0;
+    }
+    else if (comp == "==")
+    {
+        int evalExpr1 = evalExpr(expr1);
+        exprPtr = 0;
+        int evalExpr2 = evalExpr(expr2);
+        exprPtr = 0;
+        return evalExpr1 == evalExpr2;
+    }
+    else if (comp == ">")
+    {
+        int evalExpr1 = evalExpr(expr1);
+        exprPtr = 0;
+        int evalExpr2 = evalExpr(expr2);
+        exprPtr = 0;
+        return evalExpr1 > evalExpr2;
+    }
+    else if (comp == "<")
+    {
+        int evalExpr1 = evalExpr(expr1);
+        exprPtr = 0;
+        int evalExpr2 = evalExpr(expr2);
+        exprPtr = 0;
+        return evalExpr1 < evalExpr2;
+    }
+    else if (comp == "<=")
+    {
+        int evalExpr1 = evalExpr(expr1);
+        exprPtr = 0;
+        int evalExpr2 = evalExpr(expr2);
+        exprPtr = 0;
+        return evalExpr1 <= evalExpr2;
+    }
+    else if (comp == ">=")
+    {
+        int evalExpr1 = evalExpr(expr1);
+        exprPtr = 0;
+        int evalExpr2 = evalExpr(expr2);
+        exprPtr = 0;
+        return evalExpr1 >= evalExpr2;
+    }
+
+    return 0;
+}
+///////////////
 
 ///verifica daca o expresie este valida
 ///intr-o instructiune de tip set pot avea doar expresii "scurte" (fara comparatii, fullExpr = 0)
@@ -1168,14 +1240,18 @@ void compileCode_DFS(node* currentNode)
 {
     if (currentNode != NULL)
     {
-
-        if (currentNode -> instruction == SET)
+        if (currentNode -> instruction == EMPTY_NODE)
+        {
+            for (node* nextNode : currentNode -> next)
+                compileCode_DFS(nextNode);
+        }
+        else if (currentNode -> instruction == SET)
         {
             char variable = currentNode -> words[1][0];
             if (varType[variable] == INT)
             {
-                exprPtr = 0;
                 valMap[variable] = evalExpr(currentNode -> words[2]);
+                exprPtr = 0;
             }
             else
             {
@@ -1191,11 +1267,35 @@ void compileCode_DFS(node* currentNode)
             else
                 cout << variable << " = " << strMap[variable] << "\n";
         }
+        else if (currentNode -> instruction == READ)
+        {
+            /*
+            char variable = currentNode -> words[1][0];
+            if (varType[variable] == INT)
+                cin >> valMap[variable];
 
-        for (node* nextNode : currentNode -> next)
-            compileCode_DFS(nextNode);
+            else
+                cin >> strMap[variable];*/
+        }
+        else if (currentNode -> instruction == IF)
+        {
+            if (evalCondition(currentNode -> words[1]))
+                compileCode_DFS(currentNode -> next[0]);
+            else
+                compileCode_DFS(currentNode -> next[1]);
+        }
+        else if (currentNode -> instruction == WHILE)
+        {
+            while(evalCondition(currentNode -> words[1]))
+                compileCode_DFS(currentNode -> next[0]);
+        }
+        else if (currentNode -> instruction == REPEAT)
+        {
+            compileCode_DFS(currentNode -> next[0]);
+            while (!evalCondition(currentNode -> words[1]))
+                compileCode_DFS(currentNode -> next[0]);
+        }
     }
-
 }
 
 //buildDiagram_DFS is not working if i rerun the function with anothers variables for Tree -> x, y, length, height
@@ -1530,6 +1630,7 @@ void activateButton(Button button) {
         if(validTree) {
             buildDP_DFS(Tree);
             buildDiagram_DFS(Tree, Tree);
+            system("CLS");
             compileCode_DFS(Tree);
 
             str_compiler_info = "Cod executat cu succes!";
@@ -1555,6 +1656,12 @@ void activateButton(Button button) {
         getDataFromFile(FILENAME);
         cursorCP = {0, 0};
       //  codeEdit.push_back(vector<char>()); ///am mutat linia asta in setDataToFile !!!
+    }
+    else if (button.type == CLEAR)
+    {
+        clearCodeMemory();
+        codeEdit.push_back(vector<char>());
+        cursorCP = {0, 0};
     }
     else if(button.type == BACK) {
         winT = WIN_EDITOR;
@@ -1762,9 +1869,7 @@ void pollEvents(RenderWindow &window) {
         //dau clear la editor
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::D && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
-                clearCodeMemory();
-                codeEdit.push_back(vector<char>());
-                cursorCP = {0, 0};
+                activateButton(buttons[LOAD]);
             }
         }
 
