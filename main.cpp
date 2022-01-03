@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-//#include "diagrams.h"
-#include "diagrams.cpp"
+#include "diagrams.h"
+//#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -18,7 +18,7 @@ ofstream fout;
 #define FILENAME_INPUT "input.txt"
 #define FILENAME_OUTPUT "output.txt"
 #define TEMPFILE "tempaWFtaGVyZTMK.txt"
-#define TEMPFILE1 "tempaWFtaGVyZTMk.txt"
+#define TEMPFILE1 "tempasWdsaSDDFk.txt"
 //#define SCREEN_WIDTH 1200
 //#define SCREEN_HEIGHT 900
 float SCREEN_WIDTH = 1280;
@@ -627,7 +627,9 @@ bool evalCondition(string expr) ///pentru conditiile din if/while/repeat until
 
     if (comp.empty())
     {
-        return evalExpr(expr1) != 0;
+        int eval = (evalExpr(expr1) != 0);
+        exprPtr = 0;
+        return eval;
     }
     else if (comp == "==")
     {
@@ -1744,7 +1746,10 @@ void activateButton(Button button) {
             getDataFromFile(TEMPFILE1, OUTPUT_EDIT);
             remove(TEMPFILE);
             remove(TEMPFILE1);
-            
+
+            if(editFileT == OUTPUT_EDIT)
+                cursorCP = {0, 0};
+
 
             str_compiler_info = "Cod executat cu succes!";
           //  TreeDFS(Tree, 0); ///afisez arborele
@@ -2124,7 +2129,7 @@ void updateWindow(RenderWindow &window)
     // afisarea rezultatului sau syntax error
     backgroundCompilerDraw(window);
 
-    // afisarea edit file 
+    // afisarea edit file
     backgroundEditFileCutDraw(window);
 
     // afisare butoane
