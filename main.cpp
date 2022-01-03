@@ -54,8 +54,10 @@ float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
 string str_compiler_info;
 #define BLOCK_CODE_WIDTH 16
 #define BLOCK_CODE_HEIGHT 20
-#define CODEEDIT_MARGIN_WIDTH 20
-#define CODEEDIT_MARGIN_HEIGHT 20
+//#define CODEEDIT_MARGIN_WIDTH 20
+//#define CODEEDIT_MARGIN_HEIGHT 20
+float CODEEDIT_MARGIN_WIDTH = 20;
+float CODEEDIT_MARGIN_HEIGHT = 20;
 int LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
 int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
@@ -1553,6 +1555,17 @@ void printCodeEdit(RenderWindow &window) {
             }
         }
     }
+
+    aux = codeEdit[editFileT].size();
+    p = 0;
+    while(aux) {
+        p++;
+        aux /= 10;
+    }
+
+    CODEEDIT_MARGIN_WIDTH = (p+1)*10;
+    LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
+    LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
     for(int line = 0, aLine = codeP.y; aLine < (int)codeEdit[editFileT].size() && line < (int)codeEdit[editFileT].size() && line < LIMIT_LINE_CODE; line++, aLine++) {
         box.x = originICode.x+CODEEDIT_MARGIN_WIDTH-(nr-1)*BLOCK_CODE_WIDTH;
