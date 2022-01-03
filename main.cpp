@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-#include "diagrams.h"
-//#include "diagrams.cpp"
+//#include "diagrams.h"
+#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -14,8 +14,11 @@ using namespace sf;
 ifstream fin;
 ofstream fout;
 
-#define FILENAME "input.txt"
+#define FILENAME_CODE "code.txt"
+#define FILENAME_INPUT "input.txt"
+#define FILENAME_OUTPUT "output.txt"
 #define TEMPFILE "tempaWFtaGVyZTMK.txt"
+#define TEMPFILE1 "tempaWFtaGVyZTMk.txt"
 //#define SCREEN_WIDTH 1200
 //#define SCREEN_HEIGHT 900
 float SCREEN_WIDTH = 1280;
@@ -60,9 +63,11 @@ enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE,
     ERROR_STRING_OPERATIONS}; ///de adaugat pe parcurs
-enum buttonType {RUN, COMPILE, ABOUT, SAVE, LOAD, CLEAR, BACK};
+enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, BACK};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
-enum variableType{INT, STRING};
+enum variableType {INT, STRING};
+enum editFileType {CODE_EDIT, INPUT_EDIT, OUTPUT_EDIT};
+editFileType editFileT = CODE_EDIT;
 windowType winT = WIN_EDITOR;
 string errorMessage[] =
 {
@@ -128,7 +133,7 @@ unordered_map <buttonType, Button> buttons;
 
 // code
 Point cursorCP = {0, 0};
-vector <vector <char>> codeEdit;
+unordered_map <editFileType, vector <vector <char>>> codeEdit;
 
 void createAllButtons() {
     // RUN
@@ -141,17 +146,6 @@ void createAllButtons() {
     buttons[RUN].press = false;
     buttons[RUN].prepForPress = false;
     buttons[RUN].str = "RUN";
-
-    //COMPILE
-    buttons[COMPILE].topLeft = {originICode.x + DIAGRAM_WIDTH / 2 - BLOCK_BUTTON_WIDTH / 2, SCREEN_HEIGHT-(MARGIN/4)*3};
-    buttons[COMPILE].bottomRight = {originICode.x + DIAGRAM_WIDTH / 2 + BLOCK_BUTTON_WIDTH / 2, SCREEN_HEIGHT-MARGIN/4};
-    buttons[COMPILE].type = COMPILE;
-    buttons[COMPILE].colorFill = Color(28, 28, 28);
-    buttons[COMPILE].colorLine = Color(255, 0, 0);
-    buttons[COMPILE].colorOnPressFill = Color(0, 255, 0);
-    buttons[COMPILE].press = false;
-    buttons[COMPILE].prepForPress = false;
-    buttons[COMPILE].str = "COMPILE";
 
     // SAVE
     buttons[SAVE].topLeft = {originICode.x+50, MARGIN/4};
@@ -325,46 +319,46 @@ string intToString(int value) {
 }
 
 // clear vector<vector<char>>
-void clearCodeMemory() {
-    for(int i = 0; i < (int)codeEdit.size(); i++)
-        codeEdit[i].clear();
-    codeEdit.clear();
+void clearCodeMemory(editFileType editFT) {
+    for(int i = 0; i < (int)codeEdit[editFT].size(); i++)
+        codeEdit[editFT][i].clear();
+    codeEdit[editFT].clear();
 }
 
 // filename to vector<vector<char>>
-void getDataFromFile(string filename) {
-    clearCodeMemory();
+void getDataFromFile(string filename, editFileType editFT) {
+    clearCodeMemory(editFT);
     fin.open(filename);
     while(!fin.eof()) {
         string str = readLineFromFile();
 
         if (!str.empty())
         {
-            codeEdit.push_back(vector<char>());
+            codeEdit[editFT].push_back(vector<char>());
             for(int i = 0 ; i < (int)str.size(); i++)
-                codeEdit[codeEdit.size()-1].push_back(str[i]);
+                codeEdit[editFT][codeEdit[editFT].size()-1].push_back(str[i]);
         }
     }
 
-    if (codeEdit.empty())
-        codeEdit.push_back(vector<char>());
+    if (codeEdit[editFT].empty())
+        codeEdit[editFT].push_back(vector<char>());
     fin.close();
 }
 
 // vector<vector<char>> to filename
-void setDataToFile(string filename) {
+void setDataToFile(string filename, editFileType editFT) {
     fout.open(filename);
 
     ///daca nu am o linie libera la final, o adaug (este necesara pt executarea codului)
     ///nu mai sunt nevoit astfel sa dau enter manual din program la finalul codului
-    if (codeEdit[codeEdit.size() - 1].size() > 0)
-        codeEdit.push_back(vector<char>());
+    if (codeEdit[editFT][codeEdit[editFT].size() - 1].size() > 0)
+        codeEdit[editFT].push_back(vector<char>());
 
-    for(int line = 0; line < (int)codeEdit.size(); line++) {
-        for(int column = 0; column < (int)codeEdit[line].size(); column++) {
-            fout << codeEdit[line][column];
+    for(int line = 0; line < (int)codeEdit[editFT].size(); line++) {
+        for(int column = 0; column < (int)codeEdit[editFT][line].size(); column++) {
+            fout << codeEdit[editFT][line][column];
         }
-        if(line != (int)codeEdit.size()-1)
+        if(line != (int)codeEdit[editFT].size()-1)
             fout << '\n';
     }
     fout.close();
@@ -1273,20 +1267,18 @@ void compileCode_DFS(node* currentNode)
         {
             char variable = currentNode -> words[1][0];
             if (varType[variable] == INT)
-                cout << variable << " = " << valMap[variable] << "\n";
+                fout << variable << " = " << valMap[variable] << "\n";
 
             else
-                cout << variable << " = " << strMap[variable] << "\n";
+                fout << variable << " = " << strMap[variable] << "\n";
         }
         else if (currentNode -> instruction == READ)
         {
             char variable = currentNode -> words[1][0];
-            cout << "Cititi valoarea lui " << variable << ": ";
             if (varType[variable] == INT)
-                cin >> valMap[variable];
-
+                fin >> valMap[variable];
             else
-                cin >> strMap[variable];
+                fin >> strMap[variable];
         }
         else if (currentNode -> instruction == IF)
         {
@@ -1491,7 +1483,7 @@ void printCodeEdit(RenderWindow &window) {
         codeP.x = cursorCP.x-LIMIT_COLUMN_CODE;
     if(cursorCP.y > LIMIT_LINE_CODE-1)
         codeP.y = cursorCP.y-LIMIT_LINE_CODE+1;
-    for(int line = 0, aLine = codeP.y; aLine < (int)codeEdit.size() && line < (int)codeEdit.size() && line < LIMIT_LINE_CODE; line++, aLine++) {
+    for(int line = 0, aLine = codeP.y; aLine < (int)codeEdit[editFileT].size() && line < (int)codeEdit[editFileT].size() && line < LIMIT_LINE_CODE; line++, aLine++) {
         box.x = originICode.x+CODEEDIT_MARGIN_WIDTH-(nr-1)*BLOCK_CODE_WIDTH;
         box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
         box.length = nr*BLOCK_CODE_WIDTH;
@@ -1500,12 +1492,12 @@ void printCodeEdit(RenderWindow &window) {
         window.draw(createTextForCode(box, str, font));
         if(aLine == k-2)
             k *= 10, nr++;
-        for(int column = 0, aColumn = codeP.x; aColumn < (int)codeEdit[aLine].size() && column < (int)codeEdit[aLine].size() && column < LIMIT_COLUMN_CODE; column++, aColumn++) {
+        for(int column = 0, aColumn = codeP.x; aColumn < (int)codeEdit[editFileT][aLine].size() && column < (int)codeEdit[editFileT][aLine].size() && column < LIMIT_COLUMN_CODE; column++, aColumn++) {
             box.x = originICode.x+(column+1)*BLOCK_CODE_WIDTH+CODEEDIT_MARGIN_WIDTH;
             box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
             box.length = BLOCK_CODE_WIDTH;
             box.height = BLOCK_CODE_HEIGHT;
-            str = codeEdit[aLine][aColumn];
+            str = codeEdit[editFileT][aLine][aColumn];
             window.draw(createTextForCode(box, str, font));
         }
     }
@@ -1554,6 +1546,13 @@ void interfaceDraw(RenderWindow &window) {
     colorFill = Color(0, 0, 0, 0);
     colorLine = Color(255, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+
+    // border edit file
+    topLeft = {originICode.x, SCREEN_HEIGHT-(MARGIN/4)*3};
+    bottomRight = {originICode.x+CODE_WIDTH/2, SCREEN_HEIGHT-MARGIN/4};
+    colorFill = Color(0, 0, 0, 0);
+    colorLine = Color(255, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
 // background color for diagramCut
@@ -1578,6 +1577,15 @@ void backgroundCodeDraw(RenderWindow &window) {
 void backgroundCompilerDraw(RenderWindow &window) {
     Point topLeft = {originIDiagram.x, SCREEN_HEIGHT-(MARGIN/4)*3};
     Point bottomRight = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    Color colorFill = Color(14, 10, 10);
+    Color colorLine = Color(0, 0, 0, 0);
+    window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
+}
+
+// background color for edit file
+void backgroundEditFileCutDraw(RenderWindow &window) {
+    Point topLeft = {originICode.x, SCREEN_HEIGHT-(MARGIN/4)*3};
+    Point bottomRight = {originICode.x+CODE_WIDTH/2, SCREEN_HEIGHT-MARGIN/4};
     Color colorFill = Color(14, 10, 10);
     Color colorLine = Color(0, 0, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
@@ -1620,7 +1628,7 @@ void activateButton(Button button) {
         valMap.clear();
         initTree();
 
-        setDataToFile(TEMPFILE);
+        setDataToFile(TEMPFILE, CODE_EDIT);
         fin.open(TEMPFILE);
         buildTree(Tree);
 
@@ -1641,7 +1649,17 @@ void activateButton(Button button) {
         if(validTree) {
             buildDP_DFS(Tree);
             buildDiagram_DFS(Tree, Tree);
-            system("CLS");
+
+            setDataToFile(TEMPFILE, INPUT_EDIT);
+            fin.open(TEMPFILE);
+            fout.open(TEMPFILE1);
+            compileCode_DFS(Tree);
+            fin.close();
+            fout.close();
+            getDataFromFile(TEMPFILE1, OUTPUT_EDIT);
+            remove(TEMPFILE);
+            remove(TEMPFILE1);
+            
 
             str_compiler_info = "Cod executat cu succes!";
           //  TreeDFS(Tree, 0); ///afisez arborele
@@ -1656,26 +1674,26 @@ void activateButton(Button button) {
 
         }
     }
-    else if (button.type == COMPILE)
-    {
-        system("CLS");
-        compileCode_DFS(Tree);
-    }
     else if(button.type == ABOUT) {
         winT = WIN_ABOUT;
     }
     else if(button.type == SAVE) {
-        setDataToFile(FILENAME);
+        setDataToFile(FILENAME_CODE, CODE_EDIT);
+        setDataToFile(FILENAME_INPUT, INPUT_EDIT);
+        setDataToFile(FILENAME_OUTPUT, OUTPUT_EDIT);
     }
     else if(button.type == LOAD) {
-        getDataFromFile(FILENAME);
+        getDataFromFile(FILENAME_CODE, CODE_EDIT);
+        getDataFromFile(FILENAME_INPUT, INPUT_EDIT);
+        getDataFromFile(FILENAME_OUTPUT, OUTPUT_EDIT);
+        editFileT = CODE_EDIT;
         cursorCP = {0, 0};
       //  codeEdit.push_back(vector<char>()); ///am mutat linia asta in setDataToFile !!!
     }
     else if (button.type == CLEAR)
     {
-        clearCodeMemory();
-        codeEdit.push_back(vector<char>());
+        clearCodeMemory(editFileT);
+        codeEdit[editFileT].push_back(vector<char>());
         cursorCP = {0, 0};
     }
     else if(button.type == BACK) {
@@ -1888,48 +1906,71 @@ void pollEvents(RenderWindow &window) {
             }
         }
 
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::J && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
+                cursorCP = {0, 0};
+                if(editFileT == CODE_EDIT)
+                    editFileT = INPUT_EDIT;
+                else if(editFileT == INPUT_EDIT)
+                    editFileT = OUTPUT_EDIT;
+                else if(editFileT == OUTPUT_EDIT)
+                    editFileT = CODE_EDIT;
+            }
+        }
+        if(event.type == Event::KeyPressed) {
+            if(event.key.code == Keyboard::K && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
+                cursorCP = {0, 0};
+                if(editFileT == CODE_EDIT)
+                    editFileT = OUTPUT_EDIT;
+                else if(editFileT == OUTPUT_EDIT)
+                    editFileT = INPUT_EDIT;
+                else if(editFileT == INPUT_EDIT)
+                    editFileT = CODE_EDIT;
+            }
+        }
+
         // move cursor with arrow
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::Up && cursorCP.y > 0) {
                 cursorCP.y -= 1;
-                if(codeEdit.size() != 0 && cursorCP.x > codeEdit[cursorCP.y].size())
-                    cursorCP.x = codeEdit[cursorCP.y].size();
+                if(codeEdit[editFileT].size() != 0 && cursorCP.x > codeEdit[editFileT][cursorCP.y].size())
+                    cursorCP.x = codeEdit[editFileT][cursorCP.y].size();
             }
-            if(event.key.code == Keyboard::Right && codeEdit.size() != 0 && cursorCP.x < codeEdit[cursorCP.y].size())
+            if(event.key.code == Keyboard::Right && codeEdit[editFileT].size() != 0 && cursorCP.x < codeEdit[editFileT][cursorCP.y].size())
                 cursorCP.x += 1;
             if(event.key.code == Keyboard::Left && cursorCP.x > 0)
                 cursorCP.x -= 1;
-            if(event.key.code == Keyboard::Down && cursorCP.y < (int)codeEdit.size()-1) {
+            if(event.key.code == Keyboard::Down && cursorCP.y < (int)codeEdit[editFileT].size()-1) {
                 cursorCP.y += 1;
-                if(codeEdit.size() != 0 && cursorCP.x > codeEdit[cursorCP.y].size())
-                    cursorCP.x = codeEdit[cursorCP.y].size();
+                if(codeEdit[editFileT].size() != 0 && cursorCP.x > codeEdit[editFileT][cursorCP.y].size())
+                    cursorCP.x = codeEdit[editFileT][cursorCP.y].size();
             }
         }
 
         if(event.type == sf::Event::TextEntered) {
             if(32 <= event.text.unicode && event.text.unicode <= 126) {
-                codeEdit[cursorCP.y].insert(codeEdit[cursorCP.y].begin()+cursorCP.x, static_cast<char>(event.text.unicode));
+                codeEdit[editFileT][cursorCP.y].insert(codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x, static_cast<char>(event.text.unicode));
                 cursorCP.x += 1;
             }
             else if(event.text.unicode == 13) { // enter
-                codeEdit.insert(codeEdit.begin()+cursorCP.y+1, vector<char>());
-                codeEdit[cursorCP.y+1].insert(codeEdit[cursorCP.y+1].begin(), codeEdit[cursorCP.y].begin()+cursorCP.x, codeEdit[cursorCP.y].end());
-                codeEdit[cursorCP.y].erase(codeEdit[cursorCP.y].begin()+cursorCP.x, codeEdit[cursorCP.y].end());
+                codeEdit[editFileT].insert(codeEdit[editFileT].begin()+cursorCP.y+1, vector<char>());
+                codeEdit[editFileT][cursorCP.y+1].insert(codeEdit[editFileT][cursorCP.y+1].begin(), codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x, codeEdit[editFileT][cursorCP.y].end());
+                codeEdit[editFileT][cursorCP.y].erase(codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x, codeEdit[editFileT][cursorCP.y].end());
                 cursorCP.x = 0;
                 cursorCP.y += 1;
             }
             else if(event.text.unicode == 8) { //backspace
                 if(cursorCP.x == 0) {
                     if(cursorCP.y != 0) {
-                        cursorCP.x = codeEdit[cursorCP.y-1].size();
-                        codeEdit[cursorCP.y-1].insert(codeEdit[cursorCP.y-1].end(), codeEdit[cursorCP.y].begin(), codeEdit[cursorCP.y].end());
-                        codeEdit[cursorCP.y].clear();
-                        codeEdit.erase(codeEdit.begin()+cursorCP.y);
+                        cursorCP.x = codeEdit[editFileT][cursorCP.y-1].size();
+                        codeEdit[editFileT][cursorCP.y-1].insert(codeEdit[editFileT][cursorCP.y-1].end(), codeEdit[editFileT][cursorCP.y].begin(), codeEdit[editFileT][cursorCP.y].end());
+                        codeEdit[editFileT][cursorCP.y].clear();
+                        codeEdit[editFileT].erase(codeEdit[editFileT].begin()+cursorCP.y);
                         cursorCP.y -= 1;
                     }
                 }
                 else {
-                    codeEdit[cursorCP.y].erase(codeEdit[cursorCP.y].begin()+cursorCP.x-1);
+                    codeEdit[editFileT][cursorCP.y].erase(codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x-1);
                     cursorCP.x -= 1;
                 }
             }
@@ -1974,6 +2015,9 @@ void updateWindow(RenderWindow &window)
     // afisarea rezultatului sau syntax error
     backgroundCompilerDraw(window);
 
+    // afisarea edit file 
+    backgroundEditFileCutDraw(window);
+
     // afisare butoane
     for(auto& it: buttons)
         it.second.draw(window, font);
@@ -1988,6 +2032,18 @@ void updateWindow(RenderWindow &window)
         window.draw(createText(box, " ", font));
     else
         window.draw(createText(box, str_compiler_info, font));
+
+    // afisare edit file info
+    box.x = originICode.x;
+    box.y = SCREEN_HEIGHT-(MARGIN/4)*3;
+    box.length = originICode.x+CODE_WIDTH/2-box.x;
+    box.height = SCREEN_HEIGHT-MARGIN/4-box.y;
+    if(editFileT == CODE_EDIT)
+        window.draw(createText(box, "Edit: Code File ", font));
+    else if(editFileT == INPUT_EDIT)
+        window.draw(createText(box, "Edit: In File   ", font));
+    else if(editFileT == OUTPUT_EDIT)
+        window.draw(createText(box, "Edit: Out File  ", font));
 
     window.display();
 }
@@ -2100,7 +2156,9 @@ int main() {
         exit(0);
     }
     createAllButtons();
-    codeEdit.push_back(vector<char>());
+    codeEdit[CODE_EDIT].push_back(vector<char>());
+    codeEdit[INPUT_EDIT].push_back(vector<char>());
+    codeEdit[OUTPUT_EDIT].push_back(vector<char>());
 
     //Debugger();
 
