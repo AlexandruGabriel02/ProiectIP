@@ -63,7 +63,7 @@ enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE,
     ERROR_STRING_OPERATIONS}; ///de adaugat pe parcurs
-enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, BACK};
+enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, BACK, ARROW_LEFT, ARROW_RIGHT};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
 enum variableType {INT, STRING};
 enum editFileType {CODE_EDIT, INPUT_EDIT, OUTPUT_EDIT};
@@ -201,6 +201,28 @@ void createAllButtons() {
     backButton.press = false;
     backButton.prepForPress = false;
     backButton.str = "BACK";
+
+    // ARROW_LEFT
+    buttons[ARROW_LEFT].topLeft = {originICode.x+CODE_WIDTH-10-2*BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
+    buttons[ARROW_LEFT].bottomRight = {originICode.x+CODE_WIDTH-10-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    buttons[ARROW_LEFT].type = ARROW_LEFT;
+    buttons[ARROW_LEFT].colorFill = Color(28, 28, 28);
+    buttons[ARROW_LEFT].colorLine = Color(255, 0, 0);
+    buttons[ARROW_LEFT].colorOnPressFill = Color(0, 255, 0);
+    buttons[ARROW_LEFT].press = false;
+    buttons[ARROW_LEFT].prepForPress = false;
+    buttons[ARROW_LEFT].str = "<";
+
+    // ARROW_RIGHT
+    buttons[ARROW_RIGHT].topLeft = {originICode.x+CODE_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
+    buttons[ARROW_RIGHT].bottomRight = {originICode.x+CODE_WIDTH, SCREEN_HEIGHT-MARGIN/4};
+    buttons[ARROW_RIGHT].type = ARROW_RIGHT;
+    buttons[ARROW_RIGHT].colorFill = Color(28, 28, 28);
+    buttons[ARROW_RIGHT].colorLine = Color(255, 0, 0);
+    buttons[ARROW_RIGHT].colorOnPressFill = Color(0, 255, 0);
+    buttons[ARROW_RIGHT].press = false;
+    buttons[ARROW_RIGHT].prepForPress = false;
+    buttons[ARROW_RIGHT].str = ">";
 }
 
 ///verificarea erorilor in arbore, definite de functia checkErrors_DFS()
@@ -1549,7 +1571,7 @@ void interfaceDraw(RenderWindow &window) {
 
     // border edit file
     topLeft = {originICode.x, SCREEN_HEIGHT-(MARGIN/4)*3};
-    bottomRight = {originICode.x+CODE_WIDTH/2, SCREEN_HEIGHT-MARGIN/4};
+    bottomRight = {originICode.x+CODE_WIDTH-2*BLOCK_BUTTON_WIDTH-20, SCREEN_HEIGHT-MARGIN/4};
     colorFill = Color(0, 0, 0, 0);
     colorLine = Color(255, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
@@ -1585,7 +1607,7 @@ void backgroundCompilerDraw(RenderWindow &window) {
 // background color for edit file
 void backgroundEditFileCutDraw(RenderWindow &window) {
     Point topLeft = {originICode.x, SCREEN_HEIGHT-(MARGIN/4)*3};
-    Point bottomRight = {originICode.x+CODE_WIDTH/2, SCREEN_HEIGHT-MARGIN/4};
+    Point bottomRight = {originICode.x+CODE_WIDTH-2*BLOCK_BUTTON_WIDTH-20, SCREEN_HEIGHT-MARGIN/4};
     Color colorFill = Color(14, 10, 10);
     Color colorLine = Color(0, 0, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
@@ -1698,6 +1720,24 @@ void activateButton(Button button) {
     }
     else if(button.type == BACK) {
         winT = WIN_EDITOR;
+    }
+    else if(button.type == ARROW_LEFT) {
+        cursorCP = {0, 0};
+        if(editFileT == CODE_EDIT)
+            editFileT = OUTPUT_EDIT;
+        else if(editFileT == OUTPUT_EDIT)
+            editFileT = INPUT_EDIT;
+        else if(editFileT == INPUT_EDIT)
+            editFileT = CODE_EDIT;
+    }
+    else if(button.type == ARROW_RIGHT) {
+        cursorCP = {0, 0};
+        if(editFileT == CODE_EDIT)
+            editFileT = INPUT_EDIT;
+        else if(editFileT == INPUT_EDIT)
+            editFileT = OUTPUT_EDIT;
+        else if(editFileT == OUTPUT_EDIT)
+            editFileT = CODE_EDIT;
     }
 }
 
@@ -2035,9 +2075,9 @@ void updateWindow(RenderWindow &window)
 
     // afisare edit file info
     box.x = originICode.x;
-    box.y = SCREEN_HEIGHT-(MARGIN/4)*3;
-    box.length = originICode.x+CODE_WIDTH/2-box.x;
-    box.height = SCREEN_HEIGHT-MARGIN/4-box.y;
+    box.y = SCREEN_HEIGHT-(MARGIN/4)*3+5;
+    box.length = originICode.x+CODE_WIDTH-2*BLOCK_BUTTON_WIDTH-20-box.x;
+    box.height = SCREEN_HEIGHT-MARGIN/4-box.y-5;
     if(editFileT == CODE_EDIT)
         window.draw(createText(box, "Edit: Code File ", font));
     else if(editFileT == INPUT_EDIT)
