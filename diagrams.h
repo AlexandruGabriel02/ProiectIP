@@ -15,7 +15,7 @@ struct Box {
 
 Text createText(Box box, string str, Font &font);
 
-Text createTextForCode(Box box, string str, Font &font);
+Text createTextForCode(Box box, string str, Font &font, Color color);
 
 CircleShape createCircle(Point middle, float r, Color colorFill, Color colorLine, Font &font);
 
