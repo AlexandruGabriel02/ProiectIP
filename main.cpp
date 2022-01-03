@@ -1535,7 +1535,7 @@ void printCodeEdit(RenderWindow &window) {
             str.push_back("set");
             str.push_back("if");
             str.push_back("while");
-            str.push_back("reapeat");
+            str.push_back("repeat");
             str.push_back("pass");
             str.push_back("read");
             str.push_back("print");
@@ -1547,7 +1547,8 @@ void printCodeEdit(RenderWindow &window) {
                 if(verifDataFromString(line, column, str[k])) {
                     for(int i = 0; i < str[k].size(); i++)
                         colorEdit[line][column+i] = syntaxColor;
-                    column += str[k].size()-1;
+                    column = codeEdit[CODE_EDIT][line].size();
+                    break;
                 }
             }
         }
