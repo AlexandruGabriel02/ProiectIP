@@ -340,6 +340,20 @@ string intToString(int value) {
     return str;
 }
 
+// verif string into vector<vector<char>>
+bool verifDataFromString(int line, int column, string str) {
+    if(column+str.size()-1 < (int)codeEdit[CODE_EDIT][line].size()) {
+        for(int i = 0; i < str.size(); i++) {
+            if(codeEdit[CODE_EDIT][line][column] != str[i])
+                return false;
+            column++;
+        }
+    }
+    else
+        return false;
+    return true;
+}
+
 // clear vector<vector<char>>
 void clearCodeMemory(editFileType editFT) {
     for(int i = 0; i < (int)codeEdit[editFT].size(); i++)
@@ -1289,10 +1303,9 @@ void compileCode_DFS(node* currentNode)
         {
             char variable = currentNode -> words[1][0];
             if (varType[variable] == INT)
-                fout << variable << " = " << valMap[variable] << "\n";
-
+                fout << valMap[variable] << "\n";
             else
-                fout << variable << " = " << strMap[variable] << "\n";
+                fout << strMap[variable] << "\n";
         }
         else if (currentNode -> instruction == READ)
         {
@@ -1505,13 +1518,49 @@ void printCodeEdit(RenderWindow &window) {
         codeP.x = cursorCP.x-LIMIT_COLUMN_CODE;
     if(cursorCP.y > LIMIT_LINE_CODE-1)
         codeP.y = cursorCP.y-LIMIT_LINE_CODE+1;
+
+    Color syntaxColor = Color(234, 138, 220);
+    Color baseColor = Color(255, 255, 255);
+
+    vector <vector <Color>> colorEdit;
+    for(int line = 0; line < (int)codeEdit[CODE_EDIT].size(); line++) {
+        colorEdit.push_back(vector <Color>());
+        for(int column = 0; column < (int)codeEdit[CODE_EDIT][line].size(); column++)
+            colorEdit[line].push_back(baseColor);
+    }
+
+    for(int line = 0; line < (int)codeEdit[CODE_EDIT].size(); line++) {
+        for(int column = 0; column < (int)codeEdit[CODE_EDIT][line].size(); column++) {
+            vector <string> str;
+            str.push_back("var");
+            str.push_back("set");
+            str.push_back("if");
+            str.push_back("while");
+            str.push_back("reapeat");
+            str.push_back("pass");
+            str.push_back("read");
+            str.push_back("print");
+            str.push_back("else");
+            str.push_back("endif");
+            str.push_back("endwhile");
+            str.push_back("until");
+            for(int k = 0; k < (int)str.size(); k++) {
+                if(verifDataFromString(line, column, str[k])) {
+                    for(int i = 0; i < str[k].size(); i++)
+                        colorEdit[line][column+i] = syntaxColor;
+                    column += str[k].size()-1;
+                }
+            }
+        }
+    }
+
     for(int line = 0, aLine = codeP.y; aLine < (int)codeEdit[editFileT].size() && line < (int)codeEdit[editFileT].size() && line < LIMIT_LINE_CODE; line++, aLine++) {
         box.x = originICode.x+CODEEDIT_MARGIN_WIDTH-(nr-1)*BLOCK_CODE_WIDTH;
         box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
         box.length = nr*BLOCK_CODE_WIDTH;
         box.height = BLOCK_CODE_HEIGHT;
         str = intToString(aLine+1);
-        window.draw(createTextForCode(box, str, font));
+        window.draw(createTextForCode(box, str, font, baseColor));
         if(aLine == k-2)
             k *= 10, nr++;
         for(int column = 0, aColumn = codeP.x; aColumn < (int)codeEdit[editFileT][aLine].size() && column < (int)codeEdit[editFileT][aLine].size() && column < LIMIT_COLUMN_CODE; column++, aColumn++) {
@@ -1520,7 +1569,10 @@ void printCodeEdit(RenderWindow &window) {
             box.length = BLOCK_CODE_WIDTH;
             box.height = BLOCK_CODE_HEIGHT;
             str = codeEdit[editFileT][aLine][aColumn];
-            window.draw(createTextForCode(box, str, font));
+            if(editFileT == CODE_EDIT)
+                window.draw(createTextForCode(box, str, font, colorEdit[aLine][aColumn]));
+            else
+                window.draw(createTextForCode(box, str, font, baseColor));
         }
     }
 }
@@ -2013,6 +2065,12 @@ void pollEvents(RenderWindow &window) {
                     codeEdit[editFileT][cursorCP.y].erase(codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x-1);
                     cursorCP.x -= 1;
                 }
+            }
+            else if(event.text.unicode == 9) { // tab
+                codeEdit[editFileT][cursorCP.y].insert(codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x, static_cast<char>(32));
+                cursorCP.x += 1;
+                codeEdit[editFileT][cursorCP.y].insert(codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x, static_cast<char>(32));
+                cursorCP.x += 1;
             }
         }
 

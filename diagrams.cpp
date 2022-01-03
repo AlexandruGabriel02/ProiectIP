@@ -26,7 +26,7 @@ Text createText(Box box, string str, Font &font) {
     return text;
 }
 
-Text createTextForCode(Box box, string str, Font &font) {
+Text createTextForCode(Box box, string str, Font &font, Color color) {
     Text text;
     text.setFont(font);
     text.setString('1');
@@ -50,6 +50,7 @@ Text createTextForCode(Box box, string str, Font &font) {
         text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-xheight);
     else
         text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+box.height-text.getLocalBounds().height);
+    text.setFillColor(color);
     text.setOrigin(text.getLocalBounds().left, text.getLocalBounds().top);
     return text;
 }
