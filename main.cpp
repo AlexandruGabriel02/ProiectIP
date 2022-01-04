@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-#include "diagrams.h"
-//#include "diagrams.cpp"
+//#include "diagrams.h"
+#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -1530,25 +1530,40 @@ void printCodeEdit(RenderWindow &window) {
             colorEdit[line].push_back(baseColor);
     }
 
+    vector <string> vstr;
+    vstr.push_back("var");
+    vstr.push_back("set");
+    vstr.push_back("if");
+    vstr.push_back("while");
+    vstr.push_back("repeat");
+    vstr.push_back("pass");
+    vstr.push_back("read");
+    vstr.push_back("print");
+    vstr.push_back("else");
+    vstr.push_back("endif");
+    vstr.push_back("endwhile");
+    vstr.push_back("until");
+    vector <string> vstr1;
+    vstr1.push_back("int");
+    vstr1.push_back("string");
     for(int line = 0; line < (int)codeEdit[CODE_EDIT].size(); line++) {
         for(int column = 0; column < (int)codeEdit[CODE_EDIT][line].size(); column++) {
-            vector <string> str;
-            str.push_back("var");
-            str.push_back("set");
-            str.push_back("if");
-            str.push_back("while");
-            str.push_back("repeat");
-            str.push_back("pass");
-            str.push_back("read");
-            str.push_back("print");
-            str.push_back("else");
-            str.push_back("endif");
-            str.push_back("endwhile");
-            str.push_back("until");
-            for(int k = 0; k < (int)str.size(); k++) {
-                if(verifDataFromString(line, column, str[k])) {
-                    for(int i = 0; i < str[k].size(); i++)
+            for(int k = 0; k < (int)vstr.size(); k++) {
+                if(verifDataFromString(line, column, vstr[k])) {
+                    for(int i = 0; i < (int)vstr[k].size(); i++)
                         colorEdit[line][column+i] = syntaxColor;
+                    if(vstr[k] == "var") {
+                        for(int i = column+1; i < (int)codeEdit[CODE_EDIT][line].size(); i++) {
+                            for(int kk = 0; kk < (int)vstr1.size(); kk++) {
+                                if(verifDataFromString(line, i, vstr1[kk])) {
+                                    for(int ii = 0; ii < (int)vstr1[kk].size(); ii++)
+                                        colorEdit[line][i+ii] = Color(254, 128, 25);
+                                    i = codeEdit[CODE_EDIT][line].size();
+                                    break;
+                                }
+                            }
+                        }
+                    }
                     column = codeEdit[CODE_EDIT][line].size();
                     break;
                 }
