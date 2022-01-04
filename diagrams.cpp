@@ -10,7 +10,7 @@ Text createText(Box box, string str, Font &font) {
     Text text;
     text.setFont(font);
     text.setString(str);
-    float st = 1, dr = 450;
+    float st = 1, dr = 200;
     while(st <= dr) {
         float mij = (st+dr)/2;
         text.setCharacterSize(mij);
