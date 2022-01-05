@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-#include "diagrams.h"
-//#include "diagrams.cpp"
+//#include "diagrams.h"
+#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -345,11 +345,15 @@ string intToString(int value) {
 // verif string into vector<vector<char>>
 bool verifDataFromString(int line, int column, string str) {
     if(column+str.size()-1 < (int)codeEdit[CODE_EDIT][line].size()) {
+        if(column-1 >= 0 && codeEdit[CODE_EDIT][line][column-1] != ' ')
+            return false;
         for(int i = 0; i < str.size(); i++) {
             if(codeEdit[CODE_EDIT][line][column] != str[i])
                 return false;
             column++;
         }
+        if(column < (int)codeEdit[CODE_EDIT][line].size() && codeEdit[CODE_EDIT][line][column] != ' ')
+            return false;
     }
     else
         return false;
