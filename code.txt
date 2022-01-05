@@ -1,15 +1,22 @@
-var int x
-read x
-if x==3
-  var string s
-  set s fck
-  print s
+var int n
+read n
+if n==1
+  var int x
+  set x 1
+  print x
 else
-  if x==3
-    var string s
-    set s bad
-    print s
-  else
-    pass
-  endif
+  var int x
+  var int y
+  var int z
+  set x 0
+  set y 1
+  var int i
+  set i 2
+  while i<=n
+    set z x+y
+    set x y
+    set y z
+    set i i+1
+  endwhile
+  print z
 endif

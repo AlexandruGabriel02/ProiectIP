@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-//#include "diagrams.h"
-#include "diagrams.cpp"
+#include "diagrams.h"
+//#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -447,6 +447,15 @@ void buildTree(node* &currentNode)
                 exitWhile = true;
             else
             {
+                ///cazul in care am linie libera sau doar cu spatii goale
+                bool notEmptyLine = false;
+                for (unsigned i = 0; i < lineStr.size() && !notEmptyLine; i++)
+                    if (lineStr[i] != ' ')
+                        notEmptyLine = true;
+                if (!notEmptyLine)
+                    continue;
+                ///
+
                 node* newNode = new node;
                 newNode -> lineOfCode = lineCount;
                 newNode -> line = lineStr;
@@ -1110,7 +1119,11 @@ void checkStructure()
         string str = readLineFromFile();
         if (!str.empty())
         {
-            string instruction = splitIntoWords(str)[0];
+            vector <string> strWords;
+            string instruction;
+            strWords = splitIntoWords(str);
+            if (!strWords.empty())
+                instruction = splitIntoWords(str)[0];
 
             if (instruction == "if")
             {
