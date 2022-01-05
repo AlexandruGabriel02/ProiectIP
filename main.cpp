@@ -1991,20 +1991,20 @@ void pollEvents(RenderWindow &window) {
             if(event.type == Event::MouseWheelMoved) {
                 if(event.mouseWheel.delta == -1 && zoomMinScale < zoom) {
                     zoom -= zoomScale;
-                    float diff = BLOCK_WIDTH*(zoom-(zoom-zoomScale));
-                    float diff1 = (BLOCK_WIDTH*zoom)/(positionMouse.x-diagramP.x);
+                    float diff = BLOCK_WIDTH*((zoom+zoomScale)-zoom);
+                    float diff1 = (BLOCK_WIDTH*(zoom+zoomScale))/(positionMouse.x-diagramP.x);
                     diagramP.x += diff/diff1;
-                    diff = (Tree -> verticalNodeCount*BLOCK_WIDTH)*(zoom-(zoom-zoomScale));
-                    diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*zoom)/(positionMouse.y-diagramP.y);
+                    diff = (Tree -> verticalNodeCount*BLOCK_WIDTH)*((zoom+zoomScale)-zoom);
+                    diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*(zoom+zoomScale))/(positionMouse.y-diagramP.y);
                     diagramP.y += diff/diff1;
                 }
                 else if(event.mouseWheel.delta == 1) {
                     zoom += zoomScale;
                     float diff = BLOCK_WIDTH*(zoom-(zoom-zoomScale));
-                    float diff1 = (BLOCK_WIDTH*zoom)/(positionMouse.x-diagramP.x);
+                    float diff1 = (BLOCK_WIDTH*(zoom-zoomScale))/(positionMouse.x-diagramP.x);
                     diagramP.x -= diff/diff1;
                     diff = (Tree -> verticalNodeCount*BLOCK_WIDTH)*(zoom-(zoom-zoomScale));
-                    diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*zoom)/(positionMouse.y-diagramP.y);
+                    diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*(zoom-zoomScale))/(positionMouse.y-diagramP.y);
                     diagramP.y -= diff/diff1;
                 }
             }
