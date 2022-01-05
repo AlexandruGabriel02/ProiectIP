@@ -30,7 +30,7 @@ bool diagramIprepForPress = false;
 bool oneTimeResize = false;
 #define BLOCK_WIDTH 300.0
 #define BLOCK_HEIGHT 60.0
-#define MARGIN 75
+#define MARGIN 60
 #define BLOCK_BUTTON_WIDTH 100
 // interface look
 // D - diagram interface
@@ -40,14 +40,14 @@ bool oneTimeResize = false;
 // [ CC DD ]
 // [       ]
 // interfata diagramei
-#define DIAGRAM_MARGIN_WIDTH 75
+#define DIAGRAM_MARGIN_WIDTH 60
 #define DIAGRAM_MARGIN_HEIGHT MARGIN
 //#define DIAGRAM_WIDTH 500
 //#define DIAGRAM_HEIGHT 700
 float DIAGRAM_WIDTH = SCREEN_WIDTH/2-DIAGRAM_MARGIN_WIDTH*2;
 float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
 // interfata code
-#define CODE_MARGIN_WIDTH 75
+#define CODE_MARGIN_WIDTH 60
 #define CODE_MARGIN_HEIGHT MARGIN
 float CODE_WIDTH = SCREEN_WIDTH/2-CODE_MARGIN_WIDTH*2;
 float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
