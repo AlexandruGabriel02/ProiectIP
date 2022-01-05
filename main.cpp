@@ -88,7 +88,7 @@ string errorMessage[] =
 Point originIDiagram = {SCREEN_WIDTH-DIAGRAM_WIDTH-DIAGRAM_MARGIN_WIDTH, DIAGRAM_MARGIN_HEIGHT};
 
 // pozitia initiala a diagramei
-Point originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2, originIDiagram.y+50};
+Point originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2-(float)BLOCK_WIDTH/2, originIDiagram.y+50};
 Point diagramP = originDiagramP;
 
 // pozitia interfatei code
@@ -286,8 +286,8 @@ void initTree()
 
     Tree -> length = BLOCK_WIDTH * zoom; ///latimea standard a unui bloc
     Tree -> height = BLOCK_HEIGHT * zoom; ///inaltimea standard a unui bloc
-    //Tree -> x = diagramP.x; ///coordonata x de inceput (stanga sus)
-    Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2; //coorodnata x de inceput (mijloc sus) (ca sa fie zoom ul mai frumos)
+    Tree -> x = diagramP.x; ///coordonata x de inceput (stanga sus)
+    //Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2; //coorodnata x de inceput (mijloc sus) (ca sa fie zoom ul mai frumos)
     Tree -> y = diagramP.y; ///coordonata y de inceput stanga sus
 }
 
@@ -1893,7 +1893,7 @@ void resizeMechanics(RenderWindow &window) {
         SCREEN_WIDTH = window.getSize().x;
         SCREEN_HEIGHT = window.getSize().y;
         originIDiagram = {SCREEN_WIDTH-DIAGRAM_WIDTH-DIAGRAM_MARGIN_WIDTH, DIAGRAM_MARGIN_HEIGHT};
-        originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2, originIDiagram.y+50};
+        originDiagramP = {originIDiagram.x+DIAGRAM_WIDTH/2-(float)BLOCK_WIDTH/2, originIDiagram.y+50};
         diagramP = originDiagramP;
         DIAGRAM_WIDTH = SCREEN_WIDTH/2-DIAGRAM_MARGIN_WIDTH*2;
         DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
@@ -1913,7 +1913,8 @@ void resizeMechanics(RenderWindow &window) {
 // mecanismul pentru zoom
 void zoomMechanics() {
     deletePositionDiagram_DFS(Tree);
-    Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2;
+    //Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2;
+    Tree -> x = diagramP.x;
     Tree -> y = diagramP.y;
     Tree -> length = BLOCK_WIDTH * zoom;
     Tree -> height = BLOCK_HEIGHT * zoom;
@@ -1988,10 +1989,24 @@ void pollEvents(RenderWindow &window) {
         if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
            originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
             if(event.type == Event::MouseWheelMoved) {
-                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom)
+                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom) {
                     zoom -= zoomScale;
-                else if(event.mouseWheel.delta == 1)
+                    float diff = BLOCK_WIDTH*(zoom-(zoom-zoomScale));
+                    float diff1 = (BLOCK_WIDTH*zoom)/(positionMouse.x-diagramP.x);
+                    diagramP.x += diff/diff1;
+                    diff = (Tree -> verticalNodeCount*BLOCK_WIDTH)*(zoom-(zoom-zoomScale));
+                    diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*zoom)/(positionMouse.y-diagramP.y);
+                    diagramP.y += diff/diff1;
+                }
+                else if(event.mouseWheel.delta == 1) {
                     zoom += zoomScale;
+                    float diff = BLOCK_WIDTH*(zoom-(zoom-zoomScale));
+                    float diff1 = (BLOCK_WIDTH*zoom)/(positionMouse.x-diagramP.x);
+                    diagramP.x -= diff/diff1;
+                    diff = (Tree -> verticalNodeCount*BLOCK_WIDTH)*(zoom-(zoom-zoomScale));
+                    diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*zoom)/(positionMouse.y-diagramP.y);
+                    diagramP.y -= diff/diff1;
+                }
             }
         }
 
