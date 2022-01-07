@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-//#include "diagrams.h"
-#include "diagrams.cpp"
+#include "diagrams.h"
+//#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -65,7 +65,7 @@ enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE,
     ERROR_STRING_OPERATIONS}; ///de adaugat pe parcurs
-enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, BACK, ARROW_LEFT, ARROW_RIGHT};
+enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, CENTER, BACK, ARROW_LEFT, ARROW_RIGHT};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
 enum variableType {INT, STRING};
 enum editFileType {CODE_EDIT, INPUT_EDIT, OUTPUT_EDIT};
@@ -138,6 +138,13 @@ Point cursorCP = {0, 0};
 unordered_map <editFileType, vector <vector <char>>> codeEdit;
 
 void createAllButtons() {
+
+    ///variabile pentru centrarea butoanelor de sus
+    int upperButtonCount = 5;
+    float upperLength = originIDiagram.x + DIAGRAM_WIDTH - originICode.x; ///lungimea totala de sus
+    float gapLength = 1.0 * (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH) / (upperButtonCount + 1); ///distanta intre butoane
+    gapLength = gapLength / 2.; ///e prea mare distanta intre butoane, mai tai din ea
+
     // RUN
     buttons[RUN].topLeft = {originIDiagram.x + DIAGRAM_WIDTH - BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
     buttons[RUN].bottomRight = {originIDiagram.x + DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
@@ -150,8 +157,8 @@ void createAllButtons() {
     buttons[RUN].str = "RUN";
 
     // SAVE
-    buttons[SAVE].topLeft = {originICode.x+50, MARGIN/4};
-    buttons[SAVE].bottomRight = {originICode.x+50+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[SAVE].topLeft = {originICode.x + (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH - (upperButtonCount - 1) * gapLength) / 2., MARGIN/4};
+    buttons[SAVE].bottomRight = {buttons[SAVE].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[SAVE].type = SAVE;
     buttons[SAVE].colorFill = Color(28, 28, 28);
     buttons[SAVE].colorLine = Color(255, 0, 0);
@@ -161,8 +168,8 @@ void createAllButtons() {
     buttons[SAVE].str = "SAVE";
 
     // LOAD
-    buttons[LOAD].topLeft = {originICode.x+buttons[SAVE].bottomRight.x-buttons[SAVE].topLeft.x+100, MARGIN/4};
-    buttons[LOAD].bottomRight = {originICode.x+buttons[SAVE].bottomRight.x-buttons[SAVE].topLeft.x+100+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[LOAD].topLeft = {buttons[SAVE].bottomRight.x + gapLength, MARGIN/4};
+    buttons[LOAD].bottomRight = {buttons[LOAD].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[LOAD].type = LOAD;
     buttons[LOAD].colorFill = Color(28, 28, 28);
     buttons[LOAD].colorLine = Color(255, 0, 0);
@@ -172,8 +179,8 @@ void createAllButtons() {
     buttons[LOAD].str = "LOAD";
 
     // ABOUT
-    buttons[ABOUT].topLeft = {originICode.x+buttons[LOAD].bottomRight.x-buttons[LOAD].topLeft.x+250, MARGIN/4};
-    buttons[ABOUT].bottomRight = {originICode.x+buttons[LOAD].bottomRight.x-buttons[LOAD].topLeft.x+250+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[ABOUT].topLeft = {buttons[LOAD].bottomRight.x + gapLength, MARGIN/4};
+    buttons[ABOUT].bottomRight = {buttons[ABOUT].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[ABOUT].type = ABOUT;
     buttons[ABOUT].colorFill = Color(28, 28, 28);
     buttons[ABOUT].colorLine = Color(255, 0, 0);
@@ -183,8 +190,8 @@ void createAllButtons() {
     buttons[ABOUT].str = "ABOUT";
 
     ///CLEAR
-    buttons[CLEAR].topLeft = {originICode.x+buttons[ABOUT].bottomRight.x-buttons[ABOUT].topLeft.x+400, MARGIN/4};
-    buttons[CLEAR].bottomRight = {originICode.x+buttons[ABOUT].bottomRight.x-buttons[ABOUT].topLeft.x+400+BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[CLEAR].topLeft = {buttons[ABOUT].bottomRight.x + gapLength, MARGIN/4};
+    buttons[CLEAR].bottomRight = {buttons[CLEAR].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[CLEAR].type = CLEAR;
     buttons[CLEAR].colorFill = Color(28, 28, 28);
     buttons[CLEAR].colorLine = Color(255, 0, 0);
@@ -192,6 +199,17 @@ void createAllButtons() {
     buttons[CLEAR].press = false;
     buttons[CLEAR].prepForPress = false;
     buttons[CLEAR].str = "CLEAR";
+
+    ///CENTER - recentreaza diagrama
+    buttons[CENTER].topLeft = {buttons[CLEAR].bottomRight.x + gapLength, MARGIN/4};
+    buttons[CENTER].bottomRight = {buttons[CENTER].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
+    buttons[CENTER].type = CENTER;
+    buttons[CENTER].colorFill = Color(28, 28, 28);
+    buttons[CENTER].colorLine = Color(255, 0, 0);
+    buttons[CENTER].colorOnPressFill = Color(0, 255, 0);
+    buttons[CENTER].press = false;
+    buttons[CENTER].prepForPress = false;
+    buttons[CENTER].str = "CENTER";
 
     // BACK
     backButton.topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
@@ -403,7 +421,7 @@ void setDataToFile(string filename, editFileType editFT) {
     fout.close();
 }
 
-// optine instruction type
+// obtine instruction type
 instructionType getInstructionType(vector<string> vStr)
 {
     ///returneaza primul cuvant
@@ -582,17 +600,22 @@ int evalExpr(string expr)
 int term(string expr)
 {
     int val = factor(expr);
-    while (expr[exprPtr] == '*' || expr[exprPtr] == '/')
+    while (expr[exprPtr] == '*' || expr[exprPtr] == '/' || expr[exprPtr] == '%')
     {
         if (expr[exprPtr] == '*')
         {
             exprPtr++;
             val *= factor(expr);
         }
-        else
+        else if (expr[exprPtr] == '/')
         {
             exprPtr++;
             val /= factor(expr);
+        }
+        else
+        {
+            exprPtr++;
+            val %= factor(expr);
         }
     }
     return val;
@@ -631,9 +654,9 @@ bool evalCondition(string expr) ///pentru conditiile din if/while/repeat until
 {
     unsigned int i = 0;
     string expr1, expr2, comp;
-    for (i = 0; i < expr.size() && !strchr("<=>", expr[i]); i++)
+    for (i = 0; i < expr.size() && !strchr("!<=>", expr[i]); i++)
         expr1.push_back(expr[i]);
-    for ( ; i < expr.size() && strchr("<=>", expr[i]); i++)
+    for ( ; i < expr.size() && strchr("!<=>", expr[i]); i++)
         comp.push_back(expr[i]);
     for ( ; i < expr.size(); i++)
         expr2.push_back(expr[i]);
@@ -684,6 +707,14 @@ bool evalCondition(string expr) ///pentru conditiile din if/while/repeat until
         exprPtr = 0;
         return evalExpr1 >= evalExpr2;
     }
+    else if (comp == "!=")
+    {
+        int evalExpr1 = evalExpr(expr1);
+        exprPtr = 0;
+        int evalExpr2 = evalExpr(expr2);
+        exprPtr = 0;
+        return evalExpr1 != evalExpr2;
+    }
 
     return 0;
 }
@@ -692,12 +723,12 @@ bool evalCondition(string expr) ///pentru conditiile din if/while/repeat until
 ///verifica daca o expresie este valida
 ///intr-o instructiune de tip set pot avea doar expresii "scurte" (fara comparatii, fullExpr = 0)
 ///in expresii din if/bucle am expresii full (fullExpr = 1)
-///expresie: variabile, numere, paranteze, operatori: +, -, *, /, >, <, >=, <=, ==;
+///expresie: variabile, numere, paranteze, operatori: +, -, *, /, %, >, <, >=, <=, ==;
 ///expresie intreaga -> expresie_scurta1 <comp> expresie_scurta2
 bool isValidExpr(string expression, int codeLine, bool fullExpr)
 {
-    char op[] = "+-*/";
-    char comp[] = "<=>";
+    char op[] = "+-*/%";
+    char comp[] = "<=>!";
     int st = 0; ///stiva
     int compCount = 0; ///sa evit erorile de genul "if a>b>c ..."
 
@@ -783,7 +814,7 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
         if (tokens[i][0] == '(')
         {
             char ch = tokens[i + 1][0];
-            if (ch == ')' || ch == '/' || ch == '*' || strchr(comp, ch))
+            if (ch == ')' || ch == '/' || ch == '*' || ch == '%' || strchr(comp, ch))
             {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
@@ -852,7 +883,7 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
             }
             else if (tokens[i].size() == 1)
             {
-                if (tokens[i][0] == '=')
+                if (tokens[i][0] == '=' || tokens[i][0] == '!')
                 {
                     error = make_pair(ERROR_EXPRESSION, codeLine);
                     return false;
@@ -897,8 +928,6 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
             return false;
         }
     }
-
-    ///de rezolvat variabilele de tip string
 
     return true;
 
@@ -1818,6 +1847,11 @@ void activateButton(Button button) {
         codeEdit[editFileT].push_back(vector<char>());
         cursorCP = {0, 0};
     }
+    else if (button.type == CENTER)
+    {
+        diagramP = originDiagramP;
+        zoom = 1;
+    }
     else if(button.type == BACK) {
         winT = WIN_EDITOR;
     }
@@ -2049,15 +2083,14 @@ void pollEvents(RenderWindow &window) {
         // pozitia initiala si zoom ul initial
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::O && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
-                diagramP = originDiagramP;
-                zoom = 1;
+                activateButton(buttons[CENTER]);
             }
         }
 
         //dau clear la editor
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::D && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
-                activateButton(buttons[LOAD]);
+                activateButton(buttons[CLEAR]);
             }
         }
 
