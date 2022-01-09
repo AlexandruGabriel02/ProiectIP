@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-//#include "diagrams.h"
-#include "diagrams.cpp"
+#include "diagrams.h"
+//#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -142,7 +142,7 @@ void createAllButtons() {
     ///variabile pentru centrarea butoanelor de sus
     int upperButtonCount = 5;
     float upperLength = originIDiagram.x + DIAGRAM_WIDTH - originICode.x; ///lungimea totala de sus
-    float gapLength = 1.0 * (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH) / (upperButtonCount + 1); ///distanta intre butoane
+    float gapLength = 1.f * (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH) / (upperButtonCount + 1); ///distanta intre butoane
     gapLength = gapLength / 2.; ///e prea mare distanta intre butoane, mai tai din ea
 
     // RUN
@@ -157,7 +157,7 @@ void createAllButtons() {
     buttons[RUN].str = "RUN";
 
     // SAVE
-    buttons[SAVE].topLeft = {originICode.x + (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH - (upperButtonCount - 1) * gapLength) / 2., MARGIN/4};
+    buttons[SAVE].topLeft = {originICode.x + (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH - (upperButtonCount - 1) * gapLength) / 2.f, MARGIN/4};
     buttons[SAVE].bottomRight = {buttons[SAVE].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[SAVE].type = SAVE;
     buttons[SAVE].colorFill = Color(28, 28, 28);
@@ -362,10 +362,10 @@ string intToString(int value) {
 
 // verif string into vector<vector<char>>
 bool verifDataFromString(int line, int column, string str) {
-    if(column+str.size()-1 < (int)codeEdit[CODE_EDIT][line].size()) {
+    if(column+(int)str.size()-1 < (int)codeEdit[CODE_EDIT][line].size()) {
         if(column-1 >= 0 && codeEdit[CODE_EDIT][line][column-1] != ' ')
             return false;
-        for(int i = 0; i < str.size(); i++) {
+        for(int i = 0; i < (int)str.size(); i++) {
             if(codeEdit[CODE_EDIT][line][column] != str[i])
                 return false;
             column++;
@@ -2039,8 +2039,8 @@ void pollEvents(RenderWindow &window) {
         Vector2i positionMouse = Mouse::getPosition(window);
         if(originIDiagram.x < positionMouse.x && positionMouse.x < originIDiagram.x+DIAGRAM_WIDTH &&
            originIDiagram.y < positionMouse.y && positionMouse.y < originIDiagram.y+DIAGRAM_HEIGHT) {
-            if(event.type == Event::MouseWheelMoved) {
-                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom) {
+            if(event.type == Event::MouseWheelMoved && Tree != NULL && validTree) {
+                if(event.mouseWheel.delta == -1 && zoomMinScale < zoom && Tree -> verticalNodeCount > 0) {
                     zoom -= zoomScale;
                     float diff = BLOCK_WIDTH*((zoom+zoomScale)-zoom);
                     float diff1 = (BLOCK_WIDTH*(zoom+zoomScale))/(positionMouse.x-diagramP.x);
@@ -2049,7 +2049,7 @@ void pollEvents(RenderWindow &window) {
                     diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*(zoom+zoomScale))/(positionMouse.y-diagramP.y);
                     diagramP.y += diff/diff1;
                 }
-                else if(event.mouseWheel.delta == 1) {
+                else if(event.mouseWheel.delta == 1 && Tree != NULL && validTree && Tree -> verticalNodeCount > 0) {
                     zoom += zoomScale;
                     float diff = BLOCK_WIDTH*(zoom-(zoom-zoomScale));
                     float diff1 = (BLOCK_WIDTH*(zoom-zoomScale))/(positionMouse.x-diagramP.x);
