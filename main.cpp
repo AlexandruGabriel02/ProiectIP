@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-#include "diagrams.h"
-//#include "diagrams.cpp"
+//#include "diagrams.h"
+#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -2278,7 +2278,7 @@ void textDrawABOUT(RenderWindow &window) {
     box.y = CODE_MARGIN_HEIGHT;
     box.length = SCREEN_WIDTH-DIAGRAM_MARGIN_WIDTH-box.x;
     box.height = SCREEN_HEIGHT-MARGIN-box.y;
-    string str = "Team: Laza Gabriel si Aliciuc Alexandru";
+    string str = "In programarea computerelor, o diagrama Nassi-Shneiderman (NSD) este o metoda de reprezentare a unui flowchart,\no reprezentare grafica de proiectare pentru programarea structurata.\nProiectul ia drept input un pseudocod simplu, care poate fi citit de la tastatura din program, si afiseaza NSD. \n\nPseudocodul are urmatoarele instructiuni:\n1. var int/string <variabila> - declararea unei variabile de tip int/string\n2. set <variabila> <expresie/string> - atribuirea catre o variabila\nDaca variabila e int se atribuie o expresie, iar daca e string se atribuie ca string tot cuvantul\n3. read <variabila> - citirea unei variabile\n4. print <variabila> - afisarea unei variabile\n5. if <expresie> ... else ... endif - instructiunea if\n6. while <expresie> ... endwhile - instructiunea while\n7. repeat ... until <expresie> - repeat until\n8. pass - instructiune dummy, nu face nimic\n\nMentiuni: \nVariabilele sunt litere mari si mici, expresiile din instructiunea set admit doar variabile, numere si operatori\nde baza (+, -, *, /, %), iar expresiile din if/while/repeat admit in plus comparatii (!=, <. ==, <=, >, >=),\nfara spatii intre ele. \nExpresiile nu pot avea operatii cu string-uri. \nToate instructiunile se scriu pe o singura linie (si else, endif, endwhile, etc se numara ca instructiuni). \nStructura unui if trebuie respectata prin folosirea if, else si endif (daca vrem sa avem o ramura if/else\ngoala se poate folosi instructiunea pass), similar pentru bucle.\n\nScurtaturi/butoane:\nctrl+r (RUN) - compileaza codul si afiseaza diagrama\nctrl+s (SAVE) - salveaza codul si input-ul/output-ul\nctrl+l (LOAD) - incarca codul si input-ul/output-ul\nctrl+o (CENTER) - aduce diagrama la forma initiala\nctrl+d (CLEAR) - sterge tot textul din caseta curenta\nctrl+j (SAGEATA DREAPTA) - mutare caseta de text curenta la dreapta\nctrl+k (SAGEATA STANGA) - mutare caseta de text curenta la stanga\n\nEchipa: Laza Gabriel si Aliciuc Alexandru, grupa B2, UAIC";
     window.draw(createText(box, str, font));
 }
 

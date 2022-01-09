@@ -10,6 +10,7 @@ Text createText(Box box, string str, Font &font) {
     Text text;
     text.setFont(font);
     text.setString(str);
+    text.setLetterSpacing(0.5);
     float st = 1, dr = 200;
     while(st <= dr) {
         float mij = (st+dr)/2;
@@ -20,7 +21,6 @@ Text createText(Box box, string str, Font &font) {
             dr = mij-1;
     }
     text.setCharacterSize(st-1);
-    text.setLetterSpacing(0.5);
     text.setPosition(box.x+(box.length-text.getLocalBounds().width)/2, box.y+(box.height-text.getLocalBounds().height)/2);
     text.setOrigin(text.getLocalBounds().left, text.getLocalBounds().top);
     return text;
