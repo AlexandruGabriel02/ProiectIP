@@ -2049,7 +2049,7 @@ void pollEvents(RenderWindow &window) {
                     diff1 = (Tree -> verticalNodeCount*BLOCK_WIDTH*(zoom+zoomScale))/(positionMouse.y-diagramP.y);
                     diagramP.y += diff/diff1;
                 }
-                else if(event.mouseWheel.delta == 1 && Tree != NULL && validTree && Tree -> verticalNodeCount > 0) {
+                else if(event.mouseWheel.delta == 1 && Tree -> verticalNodeCount > 0) {
                     zoom += zoomScale;
                     float diff = BLOCK_WIDTH*(zoom-(zoom-zoomScale));
                     float diff1 = (BLOCK_WIDTH*(zoom-zoomScale))/(positionMouse.x-diagramP.x);
