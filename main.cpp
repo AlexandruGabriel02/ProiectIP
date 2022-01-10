@@ -5,8 +5,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstring>
-#include "diagrams.h"
-//#include "diagrams.cpp"
+//#include "diagrams.h"
+#include "diagrams.cpp"
 
 using namespace std;
 using namespace sf;
@@ -19,8 +19,6 @@ ofstream fout;
 #define FILENAME_OUTPUT "output.txt"
 #define TEMPFILE "tempaWFtaGVyZTMK.txt"
 #define TEMPFILE1 "tempasWdsaSDDFk.txt"
-//#define SCREEN_WIDTH 1200
-//#define SCREEN_HEIGHT 900
 float SCREEN_WIDTH = 1280;
 float SCREEN_HEIGHT = 720;
 float MINSCR_WIDTH = 1158;
@@ -42,8 +40,6 @@ bool oneTimeResize = false;
 // interfata diagramei
 #define DIAGRAM_MARGIN_WIDTH 60
 #define DIAGRAM_MARGIN_HEIGHT MARGIN
-//#define DIAGRAM_WIDTH 500
-//#define DIAGRAM_HEIGHT 700
 float DIAGRAM_WIDTH = SCREEN_WIDTH/2-DIAGRAM_MARGIN_WIDTH*2;
 float DIAGRAM_HEIGHT = SCREEN_HEIGHT-DIAGRAM_MARGIN_HEIGHT*2;
 // interfata code
@@ -54,8 +50,6 @@ float CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
 string str_compiler_info;
 #define BLOCK_CODE_WIDTH 16
 #define BLOCK_CODE_HEIGHT 20
-//#define CODEEDIT_MARGIN_WIDTH 20
-//#define CODEEDIT_MARGIN_HEIGHT 20
 float CODEEDIT_MARGIN_WIDTH = 11.5;
 float CODEEDIT_MARGIN_HEIGHT = 20;
 int LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
@@ -64,7 +58,7 @@ int LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 enum instructionType {EMPTY_NODE, VAR, SET, IF, WHILE, REPEAT, READ, PRINT, PASS, END, ERROR};
 enum errorType {SYNTAX_ERROR_INSTRUCTION, SYNTAX_ERROR_VARTYPE,
     SYNTAX_ERROR_VARIABLE, SYNTAX_ERROR_INCOMPLETE_LINE, ERROR_UNDECLARED, ERROR_MULTIPLE_DECLARATION, ERROR_EXPRESSION, ERROR_INVALID_STRUCTURE,
-    ERROR_STRING_OPERATIONS}; ///de adaugat pe parcurs
+    ERROR_STRING_OPERATIONS};
 enum buttonType {RUN, ABOUT, SAVE, LOAD, CLEAR, CENTER, BACK, ARROW_LEFT, ARROW_RIGHT};
 enum windowType {WIN_EDITOR, WIN_ABOUT};
 enum variableType {INT, STRING};
@@ -94,9 +88,6 @@ Point diagramP = originDiagramP;
 // pozitia interfatei code
 Point originICode = {CODE_MARGIN_WIDTH, CODE_MARGIN_HEIGHT};
 
-// pozitia initiala a codului
-Point codeP = {0, 0};
-
 // variabilele pentru zoom
 float zoom = 1, zoomScale = 0.1, zoomMinScale = 0.3;
 
@@ -116,6 +107,7 @@ struct Button {
     bool mouseOnButton(float x, float y) {
         return (topLeft.x < x && x < bottomRight.x && topLeft.y < y && y < bottomRight.y);
     }
+
     void draw(RenderWindow &window, Font &font) {
         if(!press)
             window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
@@ -133,8 +125,9 @@ struct Button {
 // butoanele
 unordered_map <buttonType, Button> buttons;
 
-// code
+// editor
 Point cursorCP = {0, 0};
+Point codeP = {0, 0};
 unordered_map <editFileType, vector <vector <char>>> codeEdit;
 
 void createAllButtons() {
@@ -145,7 +138,7 @@ void createAllButtons() {
     float gapLength = 1.f * (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH) / (upperButtonCount + 1); ///distanta intre butoane
     gapLength = gapLength / 2.; ///e prea mare distanta intre butoane, mai tai din ea
 
-    // RUN
+    // RUN - compileaza codul si afiseaza diagrama
     buttons[RUN].topLeft = {originIDiagram.x + DIAGRAM_WIDTH - BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
     buttons[RUN].bottomRight = {originIDiagram.x + DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
     buttons[RUN].type = RUN;
@@ -156,7 +149,7 @@ void createAllButtons() {
     buttons[RUN].prepForPress = false;
     buttons[RUN].str = "RUN";
 
-    // SAVE
+    // SAVE - salveaza codul si input-ul/output-ul
     buttons[SAVE].topLeft = {originICode.x + (upperLength - upperButtonCount * BLOCK_BUTTON_WIDTH - (upperButtonCount - 1) * gapLength) / 2.f, MARGIN/4};
     buttons[SAVE].bottomRight = {buttons[SAVE].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[SAVE].type = SAVE;
@@ -167,7 +160,7 @@ void createAllButtons() {
     buttons[SAVE].prepForPress = false;
     buttons[SAVE].str = "SAVE";
 
-    // LOAD
+    // LOAD - incarca codul si input-ul/output-ul
     buttons[LOAD].topLeft = {buttons[SAVE].bottomRight.x + gapLength, MARGIN/4};
     buttons[LOAD].bottomRight = {buttons[LOAD].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[LOAD].type = LOAD;
@@ -178,7 +171,7 @@ void createAllButtons() {
     buttons[LOAD].prepForPress = false;
     buttons[LOAD].str = "LOAD";
 
-    // ABOUT
+    // ABOUT - pagina de informatii
     buttons[ABOUT].topLeft = {buttons[LOAD].bottomRight.x + gapLength, MARGIN/4};
     buttons[ABOUT].bottomRight = {buttons[ABOUT].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[ABOUT].type = ABOUT;
@@ -189,7 +182,7 @@ void createAllButtons() {
     buttons[ABOUT].prepForPress = false;
     buttons[ABOUT].str = "ABOUT";
 
-    ///CLEAR
+    ///CLEAR - sterge tot textul din caseta curenta
     buttons[CLEAR].topLeft = {buttons[ABOUT].bottomRight.x + gapLength, MARGIN/4};
     buttons[CLEAR].bottomRight = {buttons[CLEAR].topLeft.x + BLOCK_BUTTON_WIDTH, (MARGIN/4)*3};
     buttons[CLEAR].type = CLEAR;
@@ -211,7 +204,7 @@ void createAllButtons() {
     buttons[CENTER].prepForPress = false;
     buttons[CENTER].str = "CENTER";
 
-    // BACK
+    // BACK - intoarcerea la editor
     backButton.topLeft = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
     backButton.bottomRight = {originIDiagram.x+DIAGRAM_WIDTH, SCREEN_HEIGHT-MARGIN/4};
     backButton.type = BACK;
@@ -222,7 +215,7 @@ void createAllButtons() {
     backButton.prepForPress = false;
     backButton.str = "BACK";
 
-    // ARROW_LEFT
+    // ARROW_LEFT - mutare caseta de text curenta la stanga
     buttons[ARROW_LEFT].topLeft = {originICode.x+CODE_WIDTH-10-2*BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
     buttons[ARROW_LEFT].bottomRight = {originICode.x+CODE_WIDTH-10-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-MARGIN/4};
     buttons[ARROW_LEFT].type = ARROW_LEFT;
@@ -233,7 +226,7 @@ void createAllButtons() {
     buttons[ARROW_LEFT].prepForPress = false;
     buttons[ARROW_LEFT].str = "<";
 
-    // ARROW_RIGHT
+    // ARROW_RIGHT - mutare caseta de text curenta la dreapta
     buttons[ARROW_RIGHT].topLeft = {originICode.x+CODE_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-(MARGIN/4)*3};
     buttons[ARROW_RIGHT].bottomRight = {originICode.x+CODE_WIDTH, SCREEN_HEIGHT-MARGIN/4};
     buttons[ARROW_RIGHT].type = ARROW_RIGHT;
@@ -258,8 +251,7 @@ unordered_map <char, int> valMap;
 unordered_map <char, string> strMap;
 ///
 
-struct node
-{
+struct node {
     int lineOfCode = 0;
     instructionType instruction;
     string line;
@@ -280,11 +272,9 @@ typedef node* tree;
 tree Tree;
 
 ///sterg arborele din memorie
-void clearTree(node* &currentNode)
-{
-    if (currentNode != NULL)
-    {
-        for (node* nextNode : currentNode -> next)
+void clearTree(node* &currentNode) {
+    if(currentNode != NULL) {
+        for(node* nextNode : currentNode -> next)
             clearTree(nextNode);
 
         currentNode -> line.clear();
@@ -296,8 +286,7 @@ void clearTree(node* &currentNode)
 }
 
 // initializarea arborelui
-void initTree()
-{
+void initTree() {
     clearTree(Tree);
     Tree = new node;
     Tree -> instruction = EMPTY_NODE;
@@ -305,32 +294,26 @@ void initTree()
     Tree -> length = BLOCK_WIDTH * zoom; ///latimea standard a unui bloc
     Tree -> height = BLOCK_HEIGHT * zoom; ///inaltimea standard a unui bloc
     Tree -> x = diagramP.x; ///coordonata x de inceput (stanga sus)
-    //Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2; //coorodnata x de inceput (mijloc sus) (ca sa fie zoom ul mai frumos)
     Tree -> y = diagramP.y; ///coordonata y de inceput stanga sus
 }
 
 // citirea din fisier line by line
-string readLineFromFile()
-{
+string readLineFromFile() {
     string str;
     getline(fin, str);
     return str;
 }
 
 // imparte un sir in cuvinte
-vector<string> splitIntoWords(string str)
-{
+vector<string> splitIntoWords(string str) {
     vector<string> result;
     string word;
     int strSize = str.size();
 
-    for (int i = 0; i < strSize; i++)
-    {
-        if (str[i] != ' ')
-        {
+    for(int i = 0; i < strSize; i++) {
+        if(str[i] != ' ') {
             word.clear();
-            while (str[i] != ' ' && i < strSize)
-            {
+            while(str[i] != ' ' && i < strSize) {
                 word.push_back(str[i]);
                 i++;
             }
@@ -342,7 +325,7 @@ vector<string> splitIntoWords(string str)
     return result;
 }
 
-// int to string
+// int la string
 string intToString(int value) {
     string str = "";
     if(value == 0)
@@ -378,14 +361,14 @@ bool verifDataFromString(int line, int column, string str) {
     return true;
 }
 
-// clear vector<vector<char>>
+// stergerea din memorie a  vector<vector<char>>
 void clearCodeMemory(editFileType editFT) {
     for(int i = 0; i < (int)codeEdit[editFT].size(); i++)
         codeEdit[editFT][i].clear();
     codeEdit[editFT].clear();
 }
 
-// filename to vector<vector<char>>
+// filename la vector<vector<char>>
 void getDataFromFile(string filename, editFileType editFT) {
     clearCodeMemory(editFT);
     fin.open(filename);
@@ -402,13 +385,13 @@ void getDataFromFile(string filename, editFileType editFT) {
     fin.close();
 }
 
-// vector<vector<char>> to filename
+// vector<vector<char>> la filename
 void setDataToFile(string filename, editFileType editFT) {
     fout.open(filename);
 
     ///daca nu am o linie libera la final, o adaug (este necesara pt executarea codului)
     ///nu mai sunt nevoit astfel sa dau enter manual din program la finalul codului
-    if (codeEdit[editFT][codeEdit[editFT].size() - 1].size() > 0)
+    if(codeEdit[editFT][codeEdit[editFT].size() - 1].size() > 0)
         codeEdit[editFT].push_back(vector<char>());
 
     for(int line = 0; line < (int)codeEdit[editFT].size(); line++) {
@@ -422,30 +405,29 @@ void setDataToFile(string filename, editFileType editFT) {
 }
 
 // obtine instruction type
-instructionType getInstructionType(vector<string> vStr)
-{
+instructionType getInstructionType(vector<string> vStr) {
     ///returneaza primul cuvant
     string word = "";
-    if (!vStr.empty())
+    if(!vStr.empty())
         word = vStr[0];
 
-    if (word == "var")
+    if(word == "var")
         return VAR;
-    else if (word == "set")
+    else if(word == "set")
         return SET;
-    else if (word == "if")
+    else if(word == "if")
         return IF;
-    else if (word == "while")
+    else if(word == "while")
         return WHILE;
-    else if (word == "repeat")
+    else if(word == "repeat")
         return REPEAT;
-    else if (word == "pass")
+    else if(word == "pass")
         return PASS;
-    else if (word == "read")
+    else if(word == "read")
         return READ;
-    else if (word == "print")
+    else if(word == "print")
         return PRINT;
-    else if (word == "else" || word == "endif" || word == "endwhile" || word == "until")
+    else if(word == "else" || word == "endif" || word == "endwhile" || word == "until")
         return END;
 
     return ERROR;
@@ -454,27 +436,23 @@ instructionType getInstructionType(vector<string> vStr)
 // construirea arborelui
 int lineCount = 0;
 string untilExpr = ""; ///trebuie salvata expresia din repeat until pe revenirea din recursivitate
-void buildTree(node* &currentNode)
-{
+void buildTree(node* &currentNode) {
     //static int lineCount = 0; ///linia de cod la care ma aflu
-    if (currentNode -> instruction == EMPTY_NODE)
-    {
+    if(currentNode -> instruction == EMPTY_NODE) {
         bool exitWhile = false;
-        while (!exitWhile)
-        {
+        while(!exitWhile) {
             string lineStr = readLineFromFile();
             lineCount++;
 
-            if (fin.eof()) ///am ajuns la finalul fisierului
+            if(fin.eof()) ///am ajuns la finalul fisierului
                 exitWhile = true;
-            else
-            {
+            else {
                 ///cazul in care am linie libera sau doar cu spatii goale
                 bool notEmptyLine = false;
-                for (unsigned i = 0; i < lineStr.size() && !notEmptyLine; i++)
-                    if (lineStr[i] != ' ')
+                for(unsigned i = 0; i < lineStr.size() && !notEmptyLine; i++)
+                    if(lineStr[i] != ' ')
                         notEmptyLine = true;
-                if (!notEmptyLine)
+                if(!notEmptyLine)
                     continue;
                 ///
 
@@ -485,36 +463,32 @@ void buildTree(node* &currentNode)
                 newNode -> instruction = getInstructionType(newNode -> words);
 
                 ///daca intalnesc else, endif sau endwhile trebuie sa ma intorc in sus in arbore
-                if (newNode -> instruction == END)
-                {
+                if(newNode -> instruction == END) {
                     exitWhile = true; ///ies din while chiar daca nu termin de citit fisierul
 
                     ///daca am altceva pe langa acel "else\endif\endwhile" atunci linia nu e valida
                     ///daca am "until" atunci trebuie sa am exact 2 cuvinte
-                    if ((newNode -> words[0] != "until" && newNode -> words.size() != 1)  || (newNode -> words[0] == "until" && newNode -> words.size() != 2))
-                    {
+                    if((newNode -> words[0] != "until" && newNode -> words.size() != 1)  || (newNode -> words[0] == "until" && newNode -> words.size() != 2)) {
                         validTree = false;
                         error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, newNode -> lineOfCode);
                         delete newNode; ///nu am avut nevoie de nod
                         return;
                     }
 
-                    if (newNode -> words[0] == "until") ///salvez expresia din until si o retin in nodul repeat (pt repeat ... until expresie)
+                    if(newNode -> words[0] == "until") ///salvez expresia din until si o retin in nodul repeat (pt repeat ... until expresie)
                         untilExpr = newNode -> words[1];
 
                     delete newNode; ///nu am avut nevoie de nod
                 }
-                else
-                {
+                else {
                     ///am legat nodurile
-                   (currentNode -> next).push_back(newNode);
+                    (currentNode -> next).push_back(newNode);
                     buildTree(newNode);
                 }
             }
         }
     }
-    else if (currentNode -> instruction == IF)
-    {
+    else if(currentNode -> instruction == IF) {
         node* trueNode = new node;
         trueNode -> instruction = EMPTY_NODE;
         (currentNode -> next).push_back(trueNode);
@@ -525,15 +499,13 @@ void buildTree(node* &currentNode)
         (currentNode -> next).push_back(falseNode);
         buildTree(falseNode);
     }
-    else if (currentNode -> instruction == WHILE)
-    {
+    else if(currentNode -> instruction == WHILE) {
         node* newNode = new node;
         newNode -> instruction = EMPTY_NODE;
         (currentNode -> next).push_back(newNode);
         buildTree(newNode);
     }
-    else if (currentNode -> instruction == REPEAT)
-    {
+    else if(currentNode -> instruction == REPEAT) {
         node* newNode = new node;
         newNode -> instruction = EMPTY_NODE;
         (currentNode -> next).push_back(newNode);
@@ -541,33 +513,29 @@ void buildTree(node* &currentNode)
         buildTree(newNode);
 
         ///salvez expresia din until in nodul repeat
-        if (untilExpr != "")
-        {
+        if(untilExpr != "") {
             currentNode -> line += " ";
             currentNode -> line += untilExpr;
             currentNode -> words.push_back(untilExpr);
         }
         untilExpr = "";
-
     }
 }
 
 ///parcurgerea arborelui; va trebui apelat de mai multe ori pt verificarea corectitudinii
 ///pseudocodului si calculul coordonatelor si marimii fiecarui bloc
-void TreeDFS(node* currentNode, int height)
-{
-    if (currentNode != NULL)
-    {
+void TreeDFS(node* currentNode, int height) {
+    if(currentNode != NULL) {
         cout << "linie: " << currentNode -> lineOfCode << "\n";
         cout << "verticalCount: " << currentNode -> verticalNodeCount << "\n";
         cout << currentNode -> instruction << " ";
-        if (currentNode -> instruction != EMPTY_NODE)
+        if(currentNode -> instruction != EMPTY_NODE)
             cout << currentNode -> line << "\n";
         else
             cout << "\n";
         cout << "\n";
 
-        for (node* nextNode : currentNode -> next)
+        for(node* nextNode : currentNode -> next)
             TreeDFS(nextNode, height + 1);
     }
 }
@@ -578,18 +546,14 @@ int term(string expr);
 int factor(string expr);
 
 int exprPtr = 0;
-int evalExpr(string expr)
-{
+int evalExpr(string expr) {
     int val = term(expr);
-    while (expr[exprPtr] == '+' || expr[exprPtr] == '-')
-    {
-        if (expr[exprPtr] == '+')
-        {
+    while(expr[exprPtr] == '+' || expr[exprPtr] == '-') {
+        if(expr[exprPtr] == '+') {
             exprPtr++;
             val += term(expr);
         }
-        else
-        {
+        else {
             exprPtr++;
             val -= term(expr);
         }
@@ -597,23 +561,18 @@ int evalExpr(string expr)
     return val;
 }
 
-int term(string expr)
-{
+int term(string expr) {
     int val = factor(expr);
-    while (expr[exprPtr] == '*' || expr[exprPtr] == '/' || expr[exprPtr] == '%')
-    {
-        if (expr[exprPtr] == '*')
-        {
+    while(expr[exprPtr] == '*' || expr[exprPtr] == '/' || expr[exprPtr] == '%') {
+        if(expr[exprPtr] == '*') {
             exprPtr++;
             val *= factor(expr);
         }
-        else if (expr[exprPtr] == '/')
-        {
+        else if(expr[exprPtr] == '/') {
             exprPtr++;
             val /= factor(expr);
         }
-        else
-        {
+        else {
             exprPtr++;
             val %= factor(expr);
         }
@@ -621,28 +580,22 @@ int term(string expr)
     return val;
 }
 
-int factor(string expr)
-{
+int factor(string expr) {
     int val = 0;
-    if (expr[exprPtr] == '(')
-    {
+    if(expr[exprPtr] == '(') {
         exprPtr++;
         val = evalExpr(expr);
         exprPtr++;
     }
-    else
-    {
-        if (isdigit(expr[exprPtr]))
-        {
+    else {
+        if(isdigit(expr[exprPtr])) {
             val = 0;
-            while (isdigit(expr[exprPtr]))
-            {
+            while(isdigit(expr[exprPtr])) {
                 val = val * 10 + (expr[exprPtr] - '0');
                 exprPtr++;
             }
         }
-        else if (isalpha(expr[exprPtr]))
-        {
+        else if(isalpha(expr[exprPtr])) {
             val = valMap[expr[exprPtr]];
             exprPtr++;
         }
@@ -650,65 +603,57 @@ int factor(string expr)
     return val;
 }
 
-bool evalCondition(string expr) ///pentru conditiile din if/while/repeat until
-{
+bool evalCondition(string expr) { ///pentru conditiile din if/while/repeat until
     unsigned int i = 0;
     string expr1, expr2, comp;
-    for (i = 0; i < expr.size() && !strchr("!<=>", expr[i]); i++)
+    for(i = 0; i < expr.size() && !strchr("!<=>", expr[i]); i++)
         expr1.push_back(expr[i]);
-    for ( ; i < expr.size() && strchr("!<=>", expr[i]); i++)
+    for( ; i < expr.size() && strchr("!<=>", expr[i]); i++)
         comp.push_back(expr[i]);
-    for ( ; i < expr.size(); i++)
+    for( ; i < expr.size(); i++)
         expr2.push_back(expr[i]);
 
-    if (comp.empty())
-    {
+    if(comp.empty()) {
         int eval = (evalExpr(expr1) != 0);
         exprPtr = 0;
         return eval;
     }
-    else if (comp == "==")
-    {
+    else if(comp == "==") {
         int evalExpr1 = evalExpr(expr1);
         exprPtr = 0;
         int evalExpr2 = evalExpr(expr2);
         exprPtr = 0;
         return evalExpr1 == evalExpr2;
     }
-    else if (comp == ">")
-    {
+    else if(comp == ">") {
         int evalExpr1 = evalExpr(expr1);
         exprPtr = 0;
         int evalExpr2 = evalExpr(expr2);
         exprPtr = 0;
         return evalExpr1 > evalExpr2;
     }
-    else if (comp == "<")
-    {
+    else if(comp == "<") {
         int evalExpr1 = evalExpr(expr1);
         exprPtr = 0;
         int evalExpr2 = evalExpr(expr2);
         exprPtr = 0;
         return evalExpr1 < evalExpr2;
     }
-    else if (comp == "<=")
-    {
+    else if(comp == "<=") {
         int evalExpr1 = evalExpr(expr1);
         exprPtr = 0;
         int evalExpr2 = evalExpr(expr2);
         exprPtr = 0;
         return evalExpr1 <= evalExpr2;
     }
-    else if (comp == ">=")
-    {
+    else if(comp == ">=") {
         int evalExpr1 = evalExpr(expr1);
         exprPtr = 0;
         int evalExpr2 = evalExpr(expr2);
         exprPtr = 0;
         return evalExpr1 >= evalExpr2;
     }
-    else if (comp == "!=")
-    {
+    else if(comp == "!=") {
         int evalExpr1 = evalExpr(expr1);
         exprPtr = 0;
         int evalExpr2 = evalExpr(expr2);
@@ -725,32 +670,26 @@ bool evalCondition(string expr) ///pentru conditiile din if/while/repeat until
 ///in expresii din if/bucle am expresii full (fullExpr = 1)
 ///expresie: variabile, numere, paranteze, operatori: +, -, *, /, %, >, <, >=, <=, ==;
 ///expresie intreaga -> expresie_scurta1 <comp> expresie_scurta2
-bool isValidExpr(string expression, int codeLine, bool fullExpr)
-{
+bool isValidExpr(string expression, int codeLine, bool fullExpr) {
     char op[] = "+-*/%";
     char comp[] = "<=>!";
     int st = 0; ///stiva
     int compCount = 0; ///sa evit erorile de genul "if a>b>c ..."
 
-    for (char ch : expression)
-    {
+    for(char ch : expression) {
         ///verificare caractere invalide
-        if (!isalnum(ch) && ch != '(' && ch != ')' && !strchr(op, ch))
-        {
-            if ((fullExpr && !strchr(comp, ch)) || !fullExpr)
-            {
+        if(!isalnum(ch) && ch != '(' && ch != ')' && !strchr(op, ch)) {
+            if((fullExpr && !strchr(comp, ch)) || !fullExpr) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
         }
 
         ///verificare parantezare
-        if (ch == '(')
+        if(ch == '(')
             st++;
-        else if (ch == ')')
-        {
-            if (st <= 0)
-            {
+        else if(ch == ')') {
+            if(st <= 0) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
@@ -758,23 +697,19 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
                 st--;
         }
     }
-    if (st != 0)
-    {
+    if(st != 0) {
         error = make_pair(ERROR_EXPRESSION, codeLine);
         return false;
     }
 
     ///impart expresia in cuvinte
     vector<string> tokens;
-    for (unsigned i = 0; i < expression.size(); i++)
-    {
+    for(unsigned i = 0; i < expression.size(); i++) {
         char ch = expression[i];
         string token;
 
-        if (isdigit(ch))
-        {
-            while (isdigit(ch) && i < expression.size())
-            {
+        if(isdigit(ch)) {
+            while(isdigit(ch) && i < expression.size()) {
                 token.push_back(ch);
                 i++;
                 ch = expression[i];
@@ -783,11 +718,9 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
 
             tokens.push_back(token);
         }
-        else if (strchr(comp, ch))
-        {
+        else if(strchr(comp, ch)) {
             compCount++;
-            while (strchr(comp, ch) && i < expression.size())
-            {
+            while(strchr(comp, ch) && i < expression.size()) {
                 token.push_back(ch);
                 i++;
                 ch = expression[i];
@@ -796,111 +729,88 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
 
             tokens.push_back(token);
         }
-        else
-        {
+        else {
             token.push_back(ch);
             tokens.push_back(token);
         }
     }
-    if (compCount >= 2)
-    {
+    if(compCount >= 2) {
         error = make_pair(ERROR_EXPRESSION, codeLine);
         return false;
     }
 
 
-    for (unsigned i = 0; i < tokens.size() - 1; i++)
-    {
-        if (tokens[i][0] == '(')
-        {
+    for(unsigned i = 0; i < tokens.size() - 1; i++) {
+        if(tokens[i][0] == '(') {
             char ch = tokens[i + 1][0];
-            if (ch == ')' || ch == '/' || ch == '*' || ch == '%' || strchr(comp, ch))
-            {
+            if(ch == ')' || ch == '/' || ch == '*' || ch == '%' || strchr(comp, ch)) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
         }
-        else if (tokens[i][0] == ')')
-        {
+        else if(tokens[i][0] == ')') {
             char ch = tokens[i + 1][0];
-            if (ch == '(' || isalnum(ch))
-            {
+            if(ch == '(' || isalnum(ch)) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
         }
-        else if (strchr(op, tokens[i][0])) ///este operator
-        {
+        else if(strchr(op, tokens[i][0])) { ///este operator
             char ch = tokens[i + 1][0];
-            if (strchr(op, ch) || ch == ')' || strchr(comp, ch))
-            {
+            if(strchr(op, ch) || ch == ')' || strchr(comp, ch)) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
         }
-        else if (isdigit(tokens[i][0])) ///este numar
-        {
+        else if(isdigit(tokens[i][0])) { ///este numar
             char ch = tokens[i + 1][0];
-            if (ch == '(' || isalpha(ch))
-            {
+            if(ch == '(' || isalpha(ch)) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
         }
-        else if (isalpha(tokens[i][0])) ///este variabila
-        {
+        else if(isalpha(tokens[i][0])) { ///este variabila
             char ch = tokens[i + 1][0];
-            if (isalnum(ch))
-            {
+            if(isalnum(ch)) {
                 error = make_pair(SYNTAX_ERROR_VARIABLE, codeLine);
                 return false;
             }
 
-            if (ch == '(')
-            {
+            if(ch == '(') {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
 
-            if (declaredGlobal.find(tokens[i][0]) == declaredGlobal.end()) ///nu am declarat variabila
-            {
+            if(declaredGlobal.find(tokens[i][0]) == declaredGlobal.end()) { ///nu am declarat variabila
                 error = make_pair(ERROR_UNDECLARED, codeLine);
                 return false;
             }
 
-            if (varType[tokens[i][0]] == STRING)
-            {
+            if(varType[tokens[i][0]] == STRING) {
                 error = make_pair(ERROR_STRING_OPERATIONS, codeLine);
                 return false;
             }
         }
-        else if (fullExpr && strchr(comp, tokens[i][0])) ///comparatie
-        {
-            if (tokens[i].size() > 2)
-            {
+        else if(fullExpr && strchr(comp, tokens[i][0])) { ///comparatie
+            if(tokens[i].size() > 2) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
-            else if (tokens[i].size() == 1)
-            {
-                if (tokens[i][0] == '=' || tokens[i][0] == '!')
-                {
+            else if(tokens[i].size() == 1) {
+                if(tokens[i][0] == '=' || tokens[i][0] == '!') {
                     error = make_pair(ERROR_EXPRESSION, codeLine);
                     return false;
                 }
             }
-            else
-            {
-                if (tokens[i][1] != '=')
-                {
+            else {
+                if(tokens[i][1] != '=') {
                     error = make_pair(ERROR_EXPRESSION, codeLine);
                     return false;
                 }
             }
 
             char ch = tokens[i + 1][0];
-            if (ch == ')' || ch == '*' || ch == '/' || strchr(comp, ch))
-            {
+            if(ch == ')' || ch == '*' || ch == '/' || strchr(comp, ch)) {
                 error = make_pair(ERROR_EXPRESSION, codeLine);
                 return false;
             }
@@ -909,21 +819,17 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
 
     ///ultimul token
     char ch = tokens[tokens.size() - 1][0];
-    if (strchr(op, ch) || strchr(comp, ch))
-    {
+    if(strchr(op, ch) || strchr(comp, ch)) {
         error = make_pair(ERROR_EXPRESSION, codeLine);
         return false;
     }
-    else if (isalpha(ch))
-    {
-        if (declaredGlobal.find(ch) == declaredGlobal.end())
-        {
+    else if(isalpha(ch)) {
+        if(declaredGlobal.find(ch) == declaredGlobal.end()) {
             error = make_pair(ERROR_UNDECLARED, codeLine);
             return false;
         }
 
-        if (varType[ch] == STRING)
-        {
+        if(varType[ch] == STRING) {
             error = make_pair(ERROR_STRING_OPERATIONS, codeLine);
             return false;
         }
@@ -935,82 +841,67 @@ bool isValidExpr(string expression, int codeLine, bool fullExpr)
 
 ///verificarea erorilor
 ///mai sunt de tratat cazurile cu expresii gresite
-void checkErrors_DFS(node* currentNode)
-{
-    if (currentNode != NULL && validTree)
-    {
-        if (currentNode -> instruction == EMPTY_NODE)
+void checkErrors_DFS(node* currentNode) {
+    if(currentNode != NULL && validTree) {
+        if(currentNode -> instruction == EMPTY_NODE)
             declaredLocal.push(set<char>());
-        else if (currentNode -> instruction == ERROR) ///tipul de instructiune nu este recunoscut
-        {
+        else if(currentNode -> instruction == ERROR) { ///tipul de instructiune nu este recunoscut
             validTree = false;
             error = make_pair(SYNTAX_ERROR_INSTRUCTION, currentNode -> lineOfCode);
             return;
         }
-        else if (currentNode -> instruction == VAR)
-        {
-            if (currentNode -> words.size() != 3) ///o linie de tip var trebuie sa aiba 3 cuvinte; aceeasi idee si mai jos
-            {
+        else if(currentNode -> instruction == VAR) {
+            if(currentNode -> words.size() != 3) { ///o linie de tip var trebuie sa aiba 3 cuvinte; aceeasi idee si mai jos
                 validTree = false;
                 error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
-            else
-            {
-                if (currentNode -> words[1] != "int" && currentNode -> words[1] != "string")
-                {
+            else {
+                if(currentNode -> words[1] != "int" && currentNode -> words[1] != "string") {
                     validTree = false;
                     error = make_pair(SYNTAX_ERROR_VARTYPE, currentNode -> lineOfCode);
                     return;
                 }
 
                 char ch = currentNode -> words[2][0];
-                if (currentNode -> words[2].size() != 1 || !isalpha(ch))
-                {
+                if(currentNode -> words[2].size() != 1 || !isalpha(ch)) {
                     validTree = false;
                     error = make_pair(SYNTAX_ERROR_VARIABLE, currentNode -> lineOfCode);
                     return;
                 }
 
                 ///declararea variabilelor
-                if (declaredGlobal.find(ch) == declaredGlobal.end())
-                {
+                if(declaredGlobal.find(ch) == declaredGlobal.end()) {
                     declaredGlobal.insert(ch);
                     declaredLocal.top().insert(ch);
 
-                    if (currentNode -> words[1] == "int")
+                    if(currentNode -> words[1] == "int")
                         varType[ch] = INT;
                     else
                         varType[ch] = STRING;
                 }
-                else
-                {
+                else {
                     validTree = false;
                     error = make_pair(ERROR_MULTIPLE_DECLARATION, currentNode -> lineOfCode);
                     return;
                 }
             }
         }
-        else if (currentNode -> instruction == SET)
-        {
-            if (currentNode -> words.size() != 3)
-            {
+        else if(currentNode -> instruction == SET) {
+            if(currentNode -> words.size() != 3) {
                 validTree = false;
                 error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
-            else
-            {
+            else {
                 char ch = currentNode -> words[1][0];
-                if (currentNode -> words[1].size() != 1 || !isalpha(ch))
-                {
+                if(currentNode -> words[1].size() != 1 || !isalpha(ch)) {
                     validTree = false;
                     error = make_pair(SYNTAX_ERROR_VARIABLE, currentNode -> lineOfCode);
                     return;
                 }
 
-                if (declaredGlobal.find(ch) == declaredGlobal.end()) ///nu am declarat variabila ch
-                {
+                if(declaredGlobal.find(ch) == declaredGlobal.end()) { ///nu am declarat variabila ch
                     validTree = false;
                     error = make_pair(ERROR_UNDECLARED, currentNode -> lineOfCode);
                     return;
@@ -1018,121 +909,91 @@ void checkErrors_DFS(node* currentNode)
 
                 ///de verificat corectitudinea expresiei (currentNode -> words[2])
                 ///daca am variabila string o sa consider al treilea cuvant drept string, nu expresie
-                if (varType[ch] == INT)
-                {
+                if(varType[ch] == INT) {
                     bool fullExpr = false;
                     validTree = isValidExpr(currentNode -> words[2], currentNode -> lineOfCode, fullExpr);
                 }
             }
         }
-        else if (currentNode -> instruction == READ)
-        {
-            if (currentNode -> words.size() != 2)
-            {
+        else if(currentNode -> instruction == READ) {
+            if(currentNode -> words.size() != 2) {
                 validTree = false;
                 error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
-            else
-            {
+            else {
                 char ch = currentNode -> words[1][0];
-                if (currentNode -> words[1].size() != 1 || !isalpha(ch))
-                {
+                if(currentNode -> words[1].size() != 1 || !isalpha(ch)) {
                     validTree = false;
                     error = make_pair(SYNTAX_ERROR_VARIABLE, currentNode -> lineOfCode);
                     return;
                 }
 
-                if (declaredGlobal.find(ch) == declaredGlobal.end()) ///nu am declarat variabila ch
-                {
+                if(declaredGlobal.find(ch) == declaredGlobal.end()) { ///nu am declarat variabila ch
                     validTree = false;
                     error = make_pair(ERROR_UNDECLARED, currentNode -> lineOfCode);
                     return;
                 }
             }
         }
-        else if (currentNode -> instruction == PRINT)
-        {
-            if (currentNode -> words.size() != 2)
-            {
+        else if(currentNode -> instruction == PRINT) {
+            if(currentNode -> words.size() != 2) {
                 validTree = false;
                 error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
-            else
-            {
-                /*
-                    eventual de tratat aici cazul "print 'sir de caractere'"
-                */
+            else {
 
                 char ch = currentNode -> words[1][0];
-                if (currentNode -> words[1].size() != 1 || !isalpha(ch))
-                {
+                if(currentNode -> words[1].size() != 1 || !isalpha(ch)) {
                     validTree = false;
                     error = make_pair(SYNTAX_ERROR_VARIABLE, currentNode -> lineOfCode);
                     return;
                 }
 
-                if (declaredGlobal.find(ch) == declaredGlobal.end()) ///nu am declarat variabila ch
-                {
+                if(declaredGlobal.find(ch) == declaredGlobal.end()) { ///nu am declarat variabila ch
                     validTree = false;
                     error = make_pair(ERROR_UNDECLARED, currentNode -> lineOfCode);
                     return;
                 }
             }
         }
-        else if (currentNode -> instruction == PASS || currentNode -> instruction == END)
-        {
-            if (currentNode -> words.size() != 1)
-            {
+        else if(currentNode -> instruction == PASS || currentNode -> instruction == END) {
+            if(currentNode -> words.size() != 1) {
                 validTree = false;
                 error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
         }
-        else if (currentNode -> instruction == IF || currentNode -> instruction == WHILE)
-        {
-            if (currentNode -> words.size() != 2)
-            {
+        else if(currentNode -> instruction == IF || currentNode -> instruction == WHILE) {
+            if(currentNode -> words.size() != 2) {
                 validTree = false;
                 error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
-            else
-            {
-                /*
-                    de verificat daca expresia este valida (currentNode -> words[1])
-
-                */
+            else {
                 bool fullExpr = true;
                 validTree = isValidExpr(currentNode -> words[1], currentNode -> lineOfCode, fullExpr);
             }
         }
-        else if (currentNode -> instruction == REPEAT)
-        {
-            if (currentNode -> words.size() > 2)
-            {
+        else if(currentNode -> instruction == REPEAT) {
+            if(currentNode -> words.size() > 2) {
                 validTree = false;
                 error = make_pair(SYNTAX_ERROR_INCOMPLETE_LINE, currentNode -> lineOfCode);
                 return;
             }
-            else
-            {
-                /*
-                    de verificat daca expresia este valida (currentNode -> words[1])
-                */
+            else {
                 bool fullExpr = true;
                 validTree = isValidExpr(currentNode -> words[1], currentNode -> lineOfCode, fullExpr);
             }
         }
 
-        for (node* nextNode : currentNode -> next)
+        for(node* nextNode : currentNode -> next)
             checkErrors_DFS(nextNode);
 
         ///sterg variabilele declarate in interiorul unui if/while deoarece am ajuns la final
-        if (currentNode -> instruction == EMPTY_NODE)
-        {
-            for (char ch : declaredLocal.top())
+        if(currentNode -> instruction == EMPTY_NODE) {
+            for(char ch : declaredLocal.top())
                 declaredGlobal.erase(ch);
             declaredLocal.pop();
         }
@@ -1142,31 +1003,25 @@ void checkErrors_DFS(node* currentNode)
 ///trateaza cazurile in care pun gresit endif, else, endwhile, etc.
 ///pt fiecare while trebuie sa am un endwhile, iar pt fiecare if un else si dupa else un endif
 ///tratez problema exact la fel ca cea a parantezarii unei expresii
-void checkStructure()
-{
+void checkStructure() {
     stack <char> st;
     int line = 0;
-    while (!fin.eof())
-    {
+    while(!fin.eof()) {
         line++;
         string str = readLineFromFile();
-        if (!str.empty())
-        {
+        if(!str.empty()) {
             vector <string> strWords;
             string instruction;
             strWords = splitIntoWords(str);
-            if (!strWords.empty())
+            if(!strWords.empty())
                 instruction = splitIntoWords(str)[0];
 
-            if (instruction == "if")
-            {
+            if(instruction == "if") {
                 st.push('[');
                 st.push('(');
             }
-            else if (instruction == "else")
-            {
-                if (st.empty() || st.top() != '(')
-                {
+            else if(instruction == "else") {
+                if(st.empty() || st.top() != '(') {
                     validTree = false;
                     error = make_pair(ERROR_INVALID_STRUCTURE, line);
                     return;
@@ -1175,10 +1030,8 @@ void checkStructure()
                     st.pop();
 
             }
-            else if (instruction == "endif")
-            {
-                if (st.empty() || st.top() != '[')
-                {
+            else if(instruction == "endif") {
+                if(st.empty() || st.top() != '[') {
                     validTree = false;
                     error = make_pair(ERROR_INVALID_STRUCTURE, line);
                     return;
@@ -1186,14 +1039,11 @@ void checkStructure()
                 else
                     st.pop();
             }
-            else if (instruction == "while")
-            {
+            else if(instruction == "while") {
                 st.push('{');
             }
-            else if (instruction == "endwhile")
-            {
-                if (st.empty() || st.top() != '{')
-                {
+            else if(instruction == "endwhile") {
+                if(st.empty() || st.top() != '{') {
                     validTree = false;
                     error = make_pair(ERROR_INVALID_STRUCTURE, line);
                     return;
@@ -1201,14 +1051,11 @@ void checkStructure()
                 else
                     st.pop();
             }
-            else if (instruction == "repeat")
-            {
+            else if(instruction == "repeat") {
                 st.push('+');
             }
-            else if (instruction == "until")
-            {
-                if (st.empty() || st.top() != '+')
-                {
+            else if(instruction == "until") {
+                if(st.empty() || st.top() != '+') {
                     validTree = false;
                     error = make_pair(ERROR_INVALID_STRUCTURE, line);
                     return;
@@ -1219,8 +1066,7 @@ void checkStructure()
         }
     }
 
-    if (!st.empty())
-    {
+    if(!st.empty()) {
         validTree = false;
         error = make_pair(ERROR_INVALID_STRUCTURE, line);
     }
@@ -1228,49 +1074,42 @@ void checkStructure()
 
 ///dp[empty_node] = noduri_simple + (1 + dp[while_empty]) + (1 + max(dp[if_T], dp[if_F]))
 ///dp - tinut in verticalNodeCount
-void buildDP_DFS(node* &currentNode)
-{
-    if (currentNode != NULL)
-    {
-        if (currentNode -> instruction == EMPTY_NODE)
+void buildDP_DFS(node* &currentNode) {
+    if(currentNode != NULL) {
+        if(currentNode -> instruction == EMPTY_NODE)
             currentNode -> verticalNodeCount = 0;
 
-        for (node* nextNode : currentNode -> next)
-        {
+        for(node* nextNode : currentNode -> next) {
             buildDP_DFS(nextNode);
-            if (currentNode -> instruction == EMPTY_NODE)
+            if(currentNode -> instruction == EMPTY_NODE)
                 currentNode -> verticalNodeCount += nextNode -> verticalNodeCount;
         }
 
-        if (currentNode -> instruction == IF)
+        if(currentNode -> instruction == IF)
             currentNode -> verticalNodeCount = 1 + max(currentNode -> next[0] -> verticalNodeCount, currentNode -> next[1] -> verticalNodeCount);
-        else if (currentNode -> instruction == WHILE || currentNode -> instruction == REPEAT)
+        else if(currentNode -> instruction == WHILE || currentNode -> instruction == REPEAT)
             currentNode -> verticalNodeCount = 1 + currentNode -> next[0] -> verticalNodeCount;
-        else if (currentNode -> instruction != EMPTY_NODE)
+        else if(currentNode -> instruction != EMPTY_NODE)
             currentNode -> verticalNodeCount = 1;
 
     }
 }
 
 // pregatire pentru desenarea diagramei
-void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
-{
-    if (currentNode != NULL)
-    {
+void buildDiagram_DFS(node* &currentNode, node* &emptyFather) {
+    if(currentNode != NULL) {
         ///creez dimensiunile blocului curent in functie de nodul tata
-        if (currentNode -> instruction != EMPTY_NODE)
-        {
+        if(currentNode -> instruction != EMPTY_NODE) {
             currentNode -> length = emptyFather -> length;
 
-            if (currentNode -> instruction != REPEAT)
-            {
+            if(currentNode -> instruction != REPEAT) {
                 currentNode -> x = emptyFather -> x;
                 currentNode -> y = emptyFather -> y;
 
                 emptyFather -> y += emptyFather -> height;
             }
 
-            if (currentNode -> instruction != WHILE && currentNode -> instruction != REPEAT) ///bloc de tip dreptunghi
+            if(currentNode -> instruction != WHILE && currentNode -> instruction != REPEAT) ///bloc de tip dreptunghi
                 currentNode -> height = emptyFather -> height;
             else ///bloc de tip bucla, trebuie sa acopere toate blocurile din interior
                 currentNode -> height = currentNode -> verticalNodeCount * emptyFather -> height;
@@ -1278,8 +1117,7 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
         }
 
         ///initializez urmatoarele noduri goale care vor deveni tati
-        if (currentNode -> instruction == IF)
-        {
+        if(currentNode -> instruction == IF) {
             currentNode -> next[0] -> length = emptyFather -> length / 2.; ///nodul gol de tip true
             currentNode -> next[1] -> length = emptyFather -> length / 2.; ///nodul gol de tip false
             currentNode -> next[0] -> x = emptyFather -> x;
@@ -1294,8 +1132,7 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
             emptyFather -> y += (currentNode -> verticalNodeCount - 1) * emptyFather -> height;
 
         }
-        else if (currentNode -> instruction == WHILE || currentNode -> instruction == REPEAT)
-        {
+        else if(currentNode -> instruction == WHILE || currentNode -> instruction == REPEAT) {
             float offset = emptyFather -> length / 5.; ///lungimea pentru bara din stanga
             currentNode -> next[0] -> length = emptyFather -> length - offset;
             currentNode -> next[0] -> x = emptyFather -> x + offset;
@@ -1306,16 +1143,14 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
             emptyFather -> y += (currentNode -> verticalNodeCount - 1) * emptyFather -> height;
         }
 
-        for (node* nextNode : currentNode -> next)
-        {
-            if (currentNode -> instruction == EMPTY_NODE)
+        for(node* nextNode : currentNode -> next) {
+            if(currentNode -> instruction == EMPTY_NODE)
                 buildDiagram_DFS(nextNode, currentNode);
             else
                 buildDiagram_DFS(nextNode, emptyFather);
         }
 
-        if (currentNode -> instruction == REPEAT)
-        {
+        if(currentNode -> instruction == REPEAT) {
             currentNode -> x = emptyFather -> x;
             currentNode -> y = emptyFather -> y;
 
@@ -1324,58 +1159,47 @@ void buildDiagram_DFS(node* &currentNode, node* &emptyFather)
     }
 }
 
-void compileCode_DFS(node* currentNode)
-{
-    if (currentNode != NULL)
-    {
-        if (currentNode -> instruction == EMPTY_NODE)
-        {
-            for (node* nextNode : currentNode -> next)
+void compileCode_DFS(node* currentNode) {
+    if(currentNode != NULL) {
+        if(currentNode -> instruction == EMPTY_NODE) {
+            for(node* nextNode : currentNode -> next)
                 compileCode_DFS(nextNode);
         }
-        else if (currentNode -> instruction == SET)
-        {
+        else if(currentNode -> instruction == SET) {
             char variable = currentNode -> words[1][0];
-            if (varType[variable] == INT)
-            {
+            if(varType[variable] == INT) {
                 valMap[variable] = evalExpr(currentNode -> words[2]);
                 exprPtr = 0;
             }
-            else
-            {
+            else {
                 strMap[variable] = currentNode -> words[2];
             }
         }
-        else if (currentNode -> instruction == PRINT)
-        {
+        else if(currentNode -> instruction == PRINT) {
             char variable = currentNode -> words[1][0];
-            if (varType[variable] == INT)
+            if(varType[variable] == INT)
                 fout << valMap[variable] << "\n";
             else
                 fout << strMap[variable] << "\n";
         }
-        else if (currentNode -> instruction == READ)
-        {
+        else if(currentNode -> instruction == READ) {
             char variable = currentNode -> words[1][0];
             if (varType[variable] == INT)
                 fin >> valMap[variable];
             else
                 fin >> strMap[variable];
         }
-        else if (currentNode -> instruction == IF)
-        {
+        else if(currentNode -> instruction == IF) {
             if (evalCondition(currentNode -> words[1]))
                 compileCode_DFS(currentNode -> next[0]);
             else
                 compileCode_DFS(currentNode -> next[1]);
         }
-        else if (currentNode -> instruction == WHILE)
-        {
+        else if(currentNode -> instruction == WHILE) {
             while(evalCondition(currentNode -> words[1]))
                 compileCode_DFS(currentNode -> next[0]);
         }
-        else if (currentNode -> instruction == REPEAT)
-        {
+        else if(currentNode -> instruction == REPEAT) {
             compileCode_DFS(currentNode -> next[0]);
             while (!evalCondition(currentNode -> words[1]))
                 compileCode_DFS(currentNode -> next[0]);
@@ -1383,8 +1207,7 @@ void compileCode_DFS(node* currentNode)
     }
 }
 
-//buildDiagram_DFS is not working if i rerun the function with anothers variables for Tree -> x, y, length, height
-//i created a function that can clear the position
+// stergerea pozitiilor din Tree
 void deletePositionDiagram_DFS(node* currentNode) {
     if(currentNode != NULL) {
         currentNode -> x = 0;
@@ -1399,12 +1222,9 @@ void deletePositionDiagram_DFS(node* currentNode) {
 
 // desenarea diagramei
 Font font;
-void printDiagram_DFS(node* currentNode, RenderWindow &window)
-{
-    if (currentNode != NULL)
-    {
-        if (currentNode -> instruction == IF)
-        {
+void printDiagram_DFS(node* currentNode, RenderWindow &window) {
+    if(currentNode != NULL) {
+        if(currentNode -> instruction == IF) {
             Point topLeft;
             topLeft.x = currentNode -> x;
             topLeft.y = currentNode -> y;
@@ -1449,8 +1269,7 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             // desenarea blocului pentru if
             window.draw(decisionCreate(topLeft, bottomRight));
         }
-        else if (currentNode -> instruction == WHILE)
-        {
+        else if(currentNode -> instruction == WHILE) {
             Point topLeft;
             topLeft.x = currentNode -> x;
             topLeft.y = currentNode -> y;
@@ -1479,8 +1298,7 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             // desenarea blocului pentru while
             window.draw(iterationWCreate(topLeft, bottomRight, offset, rectangleHeight));
         }
-        else if (currentNode -> instruction == REPEAT)
-        {
+        else if(currentNode -> instruction == REPEAT) {
             float offset = currentNode -> length / 5.; ///lungimea pentru bara din stanga
             float rectangleHeight = currentNode -> height / currentNode -> verticalNodeCount; ///inaltimea blocului fara bara din stanga
             Point bottomRight;
@@ -1510,8 +1328,7 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             window.draw(iterationUCreate(topLeft, bottomRight, offset, rectangleHeight));
 
         }
-        else if (currentNode -> instruction != EMPTY_NODE)
-        {
+        else if(currentNode -> instruction != EMPTY_NODE) {
             Point topLeft;
             topLeft.x = currentNode -> x;
             topLeft.y = currentNode -> y;
@@ -1539,7 +1356,7 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
             window.draw(singleStepCreate(topLeft, bottomRight));
         }
 
-        for (node* nextNode : currentNode -> next)
+        for(node* nextNode : currentNode -> next)
             printDiagram_DFS(nextNode, window);
     }
 }
@@ -1548,7 +1365,25 @@ void printDiagram_DFS(node* currentNode, RenderWindow &window)
 void printCodeEdit(RenderWindow &window) {
     Box box;
     string str;
-    int k = 1, nr = 0, p = 10, aux = codeP.y+1;
+
+    int aux = codeEdit[editFileT].size(), p = 0;
+    while(aux) {
+        p++;
+        aux /= 10;
+    }
+
+    CODEEDIT_MARGIN_WIDTH = p*10+p*1.5;
+    LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
+    LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
+
+    codeP = {0, 0};
+    if(cursorCP.x > LIMIT_COLUMN_CODE)
+        codeP.x = cursorCP.x-LIMIT_COLUMN_CODE;
+    if(cursorCP.y > LIMIT_LINE_CODE-1)
+        codeP.y = cursorCP.y-LIMIT_LINE_CODE+1;
+
+    int k = 1, nr = 0;
+    p = 10, aux = codeP.y+1;
     while(aux) {
         nr++;
         aux /= 10;
@@ -1560,11 +1395,6 @@ void printCodeEdit(RenderWindow &window) {
         else
             aux /= 2, p = p*p;
     }
-    codeP = {0, 0};
-    if(cursorCP.x > LIMIT_COLUMN_CODE)
-        codeP.x = cursorCP.x-LIMIT_COLUMN_CODE;
-    if(cursorCP.y > LIMIT_LINE_CODE-1)
-        codeP.y = cursorCP.y-LIMIT_LINE_CODE+1;
 
     Color syntaxColor = Color(234, 138, 220);
     Color baseColor = Color(255, 255, 255);
@@ -1589,6 +1419,7 @@ void printCodeEdit(RenderWindow &window) {
     vstr.push_back("endif");
     vstr.push_back("endwhile");
     vstr.push_back("until");
+
     vector <string> vstr1;
     vstr1.push_back("int");
     vstr1.push_back("string");
@@ -1617,22 +1448,13 @@ void printCodeEdit(RenderWindow &window) {
         }
     }
 
-    aux = codeEdit[editFileT].size();
-    p = 0;
-    while(aux) {
-        p++;
-        aux /= 10;
-    }
-
-    CODEEDIT_MARGIN_WIDTH = p*10+p*1.5;
-    LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
-    LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
 
     for(int line = 0, aLine = codeP.y; aLine < (int)codeEdit[editFileT].size() && line < (int)codeEdit[editFileT].size() && line < LIMIT_LINE_CODE; line++, aLine++) {
         box.x = originICode.x+CODEEDIT_MARGIN_WIDTH-(nr-1)*BLOCK_CODE_WIDTH;
         box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
         box.length = nr*BLOCK_CODE_WIDTH;
         box.height = BLOCK_CODE_HEIGHT;
+
         str = intToString(aLine+1);
         window.draw(createTextForCode(box, str, font, baseColor));
         if(aLine == k-2)
@@ -1642,6 +1464,7 @@ void printCodeEdit(RenderWindow &window) {
             box.y = originICode.y+line*BLOCK_CODE_HEIGHT+CODEEDIT_MARGIN_HEIGHT;
             box.length = BLOCK_CODE_WIDTH;
             box.height = BLOCK_CODE_HEIGHT;
+
             str = codeEdit[editFileT][aLine][aColumn];
             if(editFileT == CODE_EDIT)
                 window.draw(createTextForCode(box, str, font, colorEdit[aLine][aColumn]));
@@ -1668,7 +1491,7 @@ void interfaceDraw(RenderWindow &window) {
     topLeft = {0, 0};
     bottomRight = {originICode.x, SCREEN_HEIGHT};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-    // middle
+    // mijloc
     topLeft = {originICode.x+CODE_WIDTH, MARGIN+1};
     bottomRight = {originIDiagram.x, SCREEN_HEIGHT-MARGIN};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
@@ -1676,26 +1499,26 @@ void interfaceDraw(RenderWindow &window) {
     topLeft = {0, originIDiagram.y+DIAGRAM_HEIGHT};
     bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-    // border diagram
+    // margine diagrama
     topLeft = {originIDiagram.x+2, originIDiagram.y+2};
     bottomRight = {topLeft.x+DIAGRAM_WIDTH-4, topLeft.y+DIAGRAM_HEIGHT-4};
     colorFill = Color(0, 0, 0, 0);
     colorLine = Color(255, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-    // border code
+    // margine code
     topLeft = {originICode.x+2, originICode.y+2};
     bottomRight = {topLeft.x+CODE_WIDTH-4, topLeft.y+CODE_HEIGHT-4};
     colorFill = Color(0, 0, 0, 0);
     colorLine = Color(255, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
-    // border compiler
+    // margine compiler
     topLeft = {originIDiagram.x, SCREEN_HEIGHT-(MARGIN/4)*3};
     bottomRight = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-MARGIN/4};
     colorFill = Color(0, 0, 0, 0);
     colorLine = Color(255, 0, 0);
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 
-    // border edit file
+    // marginea in ce caseta sunt
     topLeft = {originICode.x, SCREEN_HEIGHT-(MARGIN/4)*3};
     bottomRight = {originICode.x+CODE_WIDTH-2*BLOCK_BUTTON_WIDTH-20, SCREEN_HEIGHT-MARGIN/4};
     colorFill = Color(0, 0, 0, 0);
@@ -1703,7 +1526,7 @@ void interfaceDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
-// background color for diagramCut
+// desenarea fundalului pentru diagramCut
 void backgroundDiagramDraw(RenderWindow &window) {
     Point topLeft = originIDiagram;
     Point bottomRight = {topLeft.x+DIAGRAM_WIDTH, topLeft.y+DIAGRAM_HEIGHT};
@@ -1712,7 +1535,7 @@ void backgroundDiagramDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
-// background color for codeCut
+// desenarea fundalului pentru codeCut
 void backgroundCodeDraw(RenderWindow &window) {
     Point topLeft = originICode;
     Point bottomRight = {topLeft.x+CODE_WIDTH, topLeft.y+CODE_HEIGHT};
@@ -1721,7 +1544,7 @@ void backgroundCodeDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
-// background color for compilerCut
+// desenarea fundalului pentru compilerCut
 void backgroundCompilerDraw(RenderWindow &window) {
     Point topLeft = {originIDiagram.x, SCREEN_HEIGHT-(MARGIN/4)*3};
     Point bottomRight = {originIDiagram.x+DIAGRAM_WIDTH-BLOCK_BUTTON_WIDTH, SCREEN_HEIGHT-MARGIN/4};
@@ -1730,7 +1553,7 @@ void backgroundCompilerDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
-// background color for edit file
+// desenarea fundalului pentru in ce caseta sunt
 void backgroundEditFileCutDraw(RenderWindow &window) {
     Point topLeft = {originICode.x, SCREEN_HEIGHT-(MARGIN/4)*3};
     Point bottomRight = {originICode.x+CODE_WIDTH-2*BLOCK_BUTTON_WIDTH-20, SCREEN_HEIGHT-MARGIN/4};
@@ -1739,7 +1562,7 @@ void backgroundEditFileCutDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
-// line draw
+// desenarea unei linii
 void lineDraw(Point startP, Point stopP, Color color, RenderWindow &window) {
     VertexArray line(LineStrip, 2);
     line[0].position = Vector2f(startP.x, startP.y);
@@ -1749,7 +1572,7 @@ void lineDraw(Point startP, Point stopP, Color color, RenderWindow &window) {
     window.draw(line);
 }
 
-// cursor draw
+// desenarea cursorului
 void cursorDraw(RenderWindow &window) {
     Point startP, stopP;
     Point aCursorCP = cursorCP;
@@ -1770,7 +1593,7 @@ void activateButton(Button button) {
         validTree = true;
         lineCount = 0;
         declaredGlobal.clear();
-        while (!declaredLocal.empty())
+        while(!declaredLocal.empty())
             declaredLocal.pop();
         varType.clear();
         valMap.clear();
@@ -1782,8 +1605,7 @@ void activateButton(Button button) {
 
         checkErrors_DFS(Tree);
 
-        if (validTree) ///daca arborele e corect mai am de verificat structura programului (erori pt endif, endwhile, else, etc)
-        {
+        if(validTree) { ///daca arborele e corect mai am de verificat structura programului (erori pt endif, endwhile, else, etc)
             ///merg inapoi la inceputul fisierului
             fin.clear();
             fin.seekg(0);
@@ -1813,12 +1635,6 @@ void activateButton(Button button) {
 
 
             str_compiler_info = "Cod executat cu succes!";
-          //  TreeDFS(Tree, 0); ///afisez arborele
-          //  clearTree(Tree);
-
-          //  cout << "stergere reusita\n";
-
-          //  TreeDFS(Tree, 0);
         }
         else {
             str_compiler_info = errorMessage[error.first]+intToString(error.second);
@@ -1839,16 +1655,13 @@ void activateButton(Button button) {
         getDataFromFile(FILENAME_OUTPUT, OUTPUT_EDIT);
         editFileT = CODE_EDIT;
         cursorCP = {0, 0};
-      //  codeEdit.push_back(vector<char>()); ///am mutat linia asta in setDataToFile !!!
     }
-    else if (button.type == CLEAR)
-    {
+    else if(button.type == CLEAR) {
         clearCodeMemory(editFileT);
         codeEdit[editFileT].push_back(vector<char>());
         cursorCP = {0, 0};
     }
-    else if (button.type == CENTER)
-    {
+    else if(button.type == CENTER) {
         diagramP = originDiagramP;
         zoom = 1;
     }
@@ -1952,8 +1765,6 @@ void resizeMechanics(RenderWindow &window) {
         CODE_HEIGHT = SCREEN_HEIGHT-CODE_MARGIN_HEIGHT*2;
         LIMIT_COLUMN_CODE = (CODE_WIDTH-CODEEDIT_MARGIN_WIDTH*2)/BLOCK_CODE_WIDTH-1;
         LIMIT_LINE_CODE = (CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT*2)/BLOCK_CODE_HEIGHT;
-        //if((int)SCREEN_HEIGHT%2 == 1)
-        //    SCREEN_HEIGHT += 1;
         createAllButtons();
         view.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         view.setCenter(SCREEN_WIDTH/2, SCREEN_HEIGHT/2);
@@ -1964,7 +1775,6 @@ void resizeMechanics(RenderWindow &window) {
 // mecanismul pentru zoom
 void zoomMechanics() {
     deletePositionDiagram_DFS(Tree);
-    //Tree -> x = diagramP.x-(BLOCK_WIDTH*zoom)/2;
     Tree -> x = diagramP.x;
     Tree -> y = diagramP.y;
     Tree -> length = BLOCK_WIDTH * zoom;
@@ -2023,7 +1833,7 @@ void moveMechanics(int direction, RenderWindow &window) {
     }
 }
 
-// events
+// eventuri
 void pollEvents(RenderWindow &window) {
     bool resizedEvent = false;
     Event event;
@@ -2031,7 +1841,7 @@ void pollEvents(RenderWindow &window) {
         if(event.type == Event::Closed)
             window.close();
 
-        // exit
+        // iesire program
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::Q && Keyboard::isKeyPressed(Keyboard::LControl))
                 window.close();
@@ -2061,63 +1871,53 @@ void pollEvents(RenderWindow &window) {
             }
         }
 
-        // RUN button action on keyboard
+        // RUN - actionarea butonului cu tastatura
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::R && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[RUN]);
             }
         }
-        // SAVE button action on keyboard
+        // SAVE - actionarea butonului cu tastatura
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::S && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[SAVE]);
             }
         }
-        // LOAD button action on keyboard
+        // LOAD - actionarea butonului cu tastatura
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::L && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[LOAD]);
             }
         }
 
-        // pozitia initiala si zoom ul initial
+        // CENTER - actionarea butonului cu tastatura
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::O && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[CENTER]);
             }
         }
 
-        //dau clear la editor
+        // CLEAR - actionarea butonului cu tastatura
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::D && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
                 activateButton(buttons[CLEAR]);
             }
         }
 
+        // ARROW_RIGHT - actionarea butonului cu tastatura
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::J && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
-                cursorCP = {0, 0};
-                if(editFileT == CODE_EDIT)
-                    editFileT = INPUT_EDIT;
-                else if(editFileT == INPUT_EDIT)
-                    editFileT = OUTPUT_EDIT;
-                else if(editFileT == OUTPUT_EDIT)
-                    editFileT = CODE_EDIT;
+                activateButton(buttons[ARROW_RIGHT]);
             }
         }
+        // ARROW_LEFT - actionarea butonului cu tastatura
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::K && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl))) {
-                cursorCP = {0, 0};
-                if(editFileT == CODE_EDIT)
-                    editFileT = OUTPUT_EDIT;
-                else if(editFileT == OUTPUT_EDIT)
-                    editFileT = INPUT_EDIT;
-                else if(editFileT == INPUT_EDIT)
-                    editFileT = CODE_EDIT;
+                activateButton(buttons[ARROW_LEFT]);
             }
         }
 
-        // move cursor with arrow
+        // mutarea cursorului cu arrow key
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::Up && cursorCP.y > 0) {
                 cursorCP.y -= 1;
@@ -2136,7 +1936,7 @@ void pollEvents(RenderWindow &window) {
         }
 
         if(event.type == sf::Event::TextEntered) {
-            if(32 <= event.text.unicode && event.text.unicode <= 126) {
+            if(32 <= event.text.unicode && event.text.unicode <= 126) { // character
                 codeEdit[editFileT][cursorCP.y].insert(codeEdit[editFileT][cursorCP.y].begin()+cursorCP.x, static_cast<char>(event.text.unicode));
                 cursorCP.x += 1;
             }
@@ -2147,7 +1947,7 @@ void pollEvents(RenderWindow &window) {
                 cursorCP.x = 0;
                 cursorCP.y += 1;
             }
-            else if(event.text.unicode == 8) { //backspace
+            else if(event.text.unicode == 8) { // backspace
                 if(cursorCP.x == 0) {
                     if(cursorCP.y != 0) {
                         cursorCP.x = codeEdit[editFileT][cursorCP.y-1].size();
@@ -2185,8 +1985,7 @@ void pollEvents(RenderWindow &window) {
 }
 
 // actualizarea ferestrei
-void updateWindow(RenderWindow &window)
-{
+void updateWindow(RenderWindow &window) {
     window.clear();
 
     backgroundDiagramDraw(window);
@@ -2197,26 +1996,27 @@ void updateWindow(RenderWindow &window)
     // afisarea codului
     printCodeEdit(window);
 
-    // draw a line
+    // desenarea unei linii
     lineDraw({originICode.x+CODEEDIT_MARGIN_WIDTH+BLOCK_CODE_WIDTH, originICode.y+CODEEDIT_MARGIN_HEIGHT}, \
              {originICode.x+CODEEDIT_MARGIN_WIDTH+BLOCK_CODE_WIDTH, originICode.y+CODE_HEIGHT-CODEEDIT_MARGIN_HEIGHT}, Color(255, 255, 255), window);
 
     // afisarea cursorului
     cursorDraw(window);
 
+    // desenarea interfatei
     interfaceDraw(window);
 
     // afisarea rezultatului sau syntax error
     backgroundCompilerDraw(window);
 
-    // afisarea edit file
+    // desenarea fundalului in ce caseta sunt
     backgroundEditFileCutDraw(window);
 
     // afisare butoane
     for(auto& it: buttons)
         it.second.draw(window, font);
 
-    // afisare compiler info
+    // afisare informatiilor in compilerCut
     Box box;
     box.x = originIDiagram.x;
     box.y = SCREEN_HEIGHT-(MARGIN/4)*3;
@@ -2227,7 +2027,7 @@ void updateWindow(RenderWindow &window)
     else
         window.draw(createText(box, str_compiler_info, font));
 
-    // afisare edit file info
+    // afisare informatiilor in ce caseta sunt
     box.x = originICode.x;
     box.y = SCREEN_HEIGHT-(MARGIN/4)*3+5;
     box.length = originICode.x+CODE_WIDTH-2*BLOCK_BUTTON_WIDTH-20-box.x;
@@ -2250,7 +2050,7 @@ void interfaceDrawABOUT(RenderWindow &window) {
     bottomRight = {SCREEN_WIDTH, SCREEN_HEIGHT};
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 
-    // border ABOUT interface
+    // marginea ABOUT interface
     topLeft.x = CODE_MARGIN_WIDTH;
     topLeft.y = CODE_MARGIN_HEIGHT;
     bottomRight.x = SCREEN_WIDTH-DIAGRAM_MARGIN_WIDTH;
@@ -2260,7 +2060,7 @@ void interfaceDrawABOUT(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
-// background color for ABOUT interface
+// desenarea fundalului pentru ABOUT interface
 void backgroundABOUTDraw(RenderWindow &window) {
     Point topLeft, bottomRight;
     topLeft.x = CODE_MARGIN_WIDTH;
@@ -2272,6 +2072,7 @@ void backgroundABOUTDraw(RenderWindow &window) {
     window.draw(createRect(topLeft, bottomRight, colorFill, colorLine));
 }
 
+// afisarea informatiilor in ABOUT interface
 void textDrawABOUT(RenderWindow &window) {
     Box box;
     box.x = CODE_MARGIN_WIDTH;
@@ -2282,6 +2083,7 @@ void textDrawABOUT(RenderWindow &window) {
     window.draw(createText(box, str, font));
 }
 
+// eventuri in ABOUT
 void pollEventsABOUT(RenderWindow &window) {
     bool resizedEvent = false;
     Event event;
@@ -2290,7 +2092,7 @@ void pollEventsABOUT(RenderWindow &window) {
             window.close();
         if(event.type == Event::KeyPressed) {
             if(event.key.code == Keyboard::B && (Keyboard::isKeyPressed(Keyboard::LControl) || Keyboard::isKeyPressed(Keyboard::RControl)))
-                winT = WIN_EDITOR;
+                activateButton(backButton);
         }
 
         // resize
@@ -2316,33 +2118,8 @@ void updateWindowABOUT(RenderWindow &window) {
     window.display();
 }
 
-//void Debugger()
-//{
-//    initTree();
-//    buildTree(Tree);
-//    checkErrors_DFS(Tree);
-//
-//    if (validTree)
-//    {
-//        buildDP_DFS(Tree);
-//        buildDiagram_DFS(Tree, Tree);
-//      //  TreeDFS(Tree, 0); ///afisez arborele
-//      //  clearTree(Tree);
-//
-//      //  cout << "stergere reusita\n";
-//
-//      //  TreeDFS(Tree, 0);
-//    }
-//    else
-//    {
-//        cout << "input invalid\n";
-//        cout << errorMessage[error.first] << error.second << "\n";
-//    }
-//}
-
 int main() {
     RenderWindow window(VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "NS Diagram");
-    window.setFramerateLimit(90);
 
 
     if(!font.loadFromFile("./font.ttf")) {
@@ -2354,7 +2131,6 @@ int main() {
     codeEdit[INPUT_EDIT].push_back(vector<char>());
     codeEdit[OUTPUT_EDIT].push_back(vector<char>());
 
-    //Debugger();
 
     while(window.isOpen()) {
         if(winT == WIN_EDITOR) {
